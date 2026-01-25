@@ -21,6 +21,16 @@ class WebhookService {
         this.apiUrl = config.BLOCKCYPHER_API_URL;
         this.apiToken = config.BLOCKCYPHER_API_TOKEN;
         this.webhookBaseUrl = config.WEBHOOK_BASE_URL;
+        this.webhookSecret = config.WEBHOOK_SECRET;
+    }
+
+    /**
+     * Build the callback URL with secret parameter for webhook validation
+     * BlockCypher will POST to this URL with the secret intact, allowing us to verify authenticity
+     * @returns {string} Callback URL with secret parameter
+     */
+    buildCallbackUrl() {
+        return `${this.webhookBaseUrl}/webhook/blockcypher?secret=${encodeURIComponent(this.webhookSecret)}`;
     }
 
     /**
@@ -59,10 +69,11 @@ class WebhookService {
                 (crypto === 'btc' ? config.BTC_CONFIRMATIONS_REQUIRED : config.ETH_CONFIRMATIONS_REQUIRED);
 
             // We use tx-confirmation to track each confirmation up to our threshold
+            // Include secret in callback URL for webhook validation
             const requestBody = {
                 event: options.event || 'tx-confirmation',
                 address: address,
-                url: `${this.webhookBaseUrl}/webhook/blockcypher`,
+                url: this.buildCallbackUrl(),
                 confirmations: confirmations,
                 // Optional: filter by script type (for BTC)
                 // script: 'pay-to-pubkey-hash'
@@ -127,7 +138,7 @@ class WebhookService {
             const requestBody = {
                 event: 'unconfirmed-tx',
                 address: address,
-                url: `${this.webhookBaseUrl}/webhook/blockcypher`
+                url: this.buildCallbackUrl()
             };
 
             const response = await fetch(url, {
@@ -182,7 +193,7 @@ class WebhookService {
             const requestBody = {
                 event: 'tx-confidence',
                 address: address,
-                url: `${this.webhookBaseUrl}/webhook/blockcypher`,
+                url: this.buildCallbackUrl(),
                 confidence: confidenceThreshold
             };
 

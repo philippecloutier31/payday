@@ -14,12 +14,14 @@ jest.unstable_mockModule('../config/env.js', () => ({
         BLOCKCYPHER_API_URL: 'https://api.blockcypher.com/v1',
         BLOCKCYPHER_API_TOKEN: 'test-token',
         WEBHOOK_BASE_URL: 'https://example.com',
+        WEBHOOK_SECRET: 'test-webhook-secret',
         BTC_CONFIRMATIONS_REQUIRED: 3,
         ETH_CONFIRMATIONS_REQUIRED: 12
     },
     BLOCKCYPHER_API_URL: 'https://api.blockcypher.com/v1',
     BLOCKCYPHER_API_TOKEN: 'test-token',
     WEBHOOK_BASE_URL: 'https://example.com',
+    WEBHOOK_SECRET: 'test-webhook-secret',
     BTC_CONFIRMATIONS_REQUIRED: 3,
     ETH_CONFIRMATIONS_REQUIRED: 12
 }));
@@ -41,6 +43,13 @@ describe('WebhookService', () => {
             expect(webhookService.getChainId('btc')).toBe('btc/main');
             expect(webhookService.getChainId('eth')).toBe('eth/main');
             expect(webhookService.getChainId('btc_test')).toBe('btc/test3');
+        });
+    });
+
+    describe('buildCallbackUrl', () => {
+        it('should build callback URL with secret parameter', () => {
+            const url = webhookService.buildCallbackUrl();
+            expect(url).toBe('https://example.com/webhook/blockcypher?secret=test-webhook-secret');
         });
     });
 
@@ -84,7 +93,8 @@ describe('WebhookService', () => {
             const requestBody = JSON.parse(callArgs[1].body);
             expect(requestBody.event).toBe('tx-confirmation');
             expect(requestBody.address).toBe('1BvBMSEYstWetqTFn5Au4m4GFg7xJaNVN2');
-            expect(requestBody.url).toBe('https://example.com/webhook/blockcypher');
+            // URL should include the secret parameter
+            expect(requestBody.url).toBe('https://example.com/webhook/blockcypher?secret=test-webhook-secret');
         });
 
         it('should use correct confirmations for ETH', async () => {

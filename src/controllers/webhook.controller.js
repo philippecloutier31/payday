@@ -3,7 +3,31 @@ import { confirmationService } from '../services/confirmation.service.js';
 import config from '../config/env.js';
 
 /**
+ * Validate webhook secret from query parameters
+ * When we register webhooks with BlockCypher, we include a secret in the callback URL.
+ * BlockCypher POSTs to this URL unchanged, so we can verify the secret matches.
+ * 
+ * @param {string} providedSecret - Secret from query parameter
+ * @returns {boolean} True if secret is valid
+ */
+const validateWebhookSecret = (providedSecret) => {
+    if (!config.WEBHOOK_SECRET || config.WEBHOOK_SECRET === 'default-secret-change-me') {
+        console.warn('WARNING: PAYMENT_WEBHOOK_SECRET is not properly configured!');
+        // In development, we might allow this, but log a warning
+        if (config.NODE_ENV === 'production') {
+            return false;
+        }
+    }
+    
+    return providedSecret === config.WEBHOOK_SECRET;
+};
+
+/**
  * Handle incoming webhooks from BlockCypher
+ * 
+ * Security: We validate the webhook by checking the secret query parameter.
+ * When we register webhooks with BlockCypher, we include our secret in the callback URL.
+ * BlockCypher POSTs to this exact URL, so we can verify the request is authentic.
  * 
  * BlockCypher sends webhook notifications for:
  * - unconfirmed-tx: Transaction seen in mempool
@@ -12,9 +36,20 @@ import config from '../config/env.js';
  */
 export const handleBlockCypherWebhook = async (req, res, next) => {
     try {
+        // Validate webhook secret from query parameter
+        const { secret } = req.query;
+        
+        if (!validateWebhookSecret(secret)) {
+            console.error('Webhook secret validation failed. Received secret:', secret ? '[REDACTED]' : 'none');
+            return res.status(401).json({
+                success: false,
+                error: 'Unauthorized: Invalid webhook secret'
+            });
+        }
+
         const payload = req.body;
 
-        console.log('Received BlockCypher webhook:', JSON.stringify(payload, null, 2));
+        console.log('Received BlockCypher webhook (validated):', JSON.stringify(payload, null, 2));
 
         // BlockCypher webhooks include these key fields:
         // - event: the event type

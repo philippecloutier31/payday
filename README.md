@@ -225,10 +225,35 @@ npm run test:coverage
 
 ## Security Considerations
 
-1. **Webhook Validation**: Verify webhook source (IP whitelist or signature)
-2. **HTTPS**: Always use HTTPS for webhook URLs
-3. **Private Keys**: Never store private keys if using generated addresses
-4. **Rate Limiting**: Implement rate limiting on API endpoints
+### Webhook Security
+
+The payment gateway implements webhook security using a secret parameter in the callback URL:
+
+1. **How it works**:
+   - When registering webhooks with BlockCypher, we include `PAYMENT_WEBHOOK_SECRET` as a query parameter in the callback URL
+   - Example: `https://your-domain.com/webhook/blockcypher?secret=your-secret`
+   - BlockCypher POSTs to this exact URL unchanged
+   - Our webhook controller validates the secret before processing any webhook
+
+2. **Configuration**:
+   ```bash
+   # Generate a strong secret
+   openssl rand -hex 32
+   
+   # Add to .env
+   PAYMENT_WEBHOOK_SECRET=your-generated-secret
+   ```
+
+3. **Validation behavior**:
+   - **Development**: Warns if secret is not configured but allows processing
+   - **Production**: Rejects all webhooks without valid secret (returns 401)
+
+### Other Security Measures
+
+1. **HTTPS**: Always use HTTPS for webhook URLs in production
+2. **Private Keys**: Never store private keys if using generated addresses
+3. **Rate Limiting**: Implement rate limiting on API endpoints
+4. **IP Whitelisting**: Optionally whitelist BlockCypher's IP addresses
 
 ## Integration with Main Backend
 
