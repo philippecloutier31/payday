@@ -1,0 +1,45 @@
+{
+  "name": "cf-finder-payment-gateway",
+  "version": "1.0.0",
+  "description": "BlockCypher payment gateway for BTC and ETH automated payments",
+  "main": "src/app.js",
+  "type": "module",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
+    "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
+  },
+  "keywords": [
+    "payment",
+    "gateway",
+    "blockcypher",
+    "bitcoin",
+    "ethereum",
+    "crypto"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "express": "^4.18.2",
+    "node-fetch": "^3.3.2",
+    "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {},
+    "moduleFileExtensions": ["js", "mjs"],
+    "testMatch": ["**/__tests__/**/*.test.js", "**/*.test.js"],
+    "testPathIgnorePatterns": ["/node_modules/", "setup.js"],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/app.js"
+    ]
+  }
+}
