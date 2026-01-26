@@ -9,7 +9,9 @@
     "dev": "node --watch src/app.js",
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js",
     "test:watch": "node --experimental-vm-modules node_modules/jest/bin/jest.js --watch",
-    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage"
+    "test:coverage": "node --experimental-vm-modules node_modules/jest/bin/jest.js --coverage",
+    "test:blockcypher": "node test-blockcypher.js",
+    "test:blockcypher:live": "node test-blockcypher.js --with-server"
   },
   "keywords": [
     "payment",
