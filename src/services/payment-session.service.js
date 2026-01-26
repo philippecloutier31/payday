@@ -1,5 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import config from '../config/env.js';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const INDEX_FILE = path.join(__dirname, '../../data/wallet-index.json');
 
 /**
  * Payment Session Manager
@@ -55,7 +62,10 @@ class PaymentSessionManager {
         this.addressIndex = new Map();
         // Index by user ID
         this.userIndex = new Map();
-        
+
+        // Load persistable indexes
+        this.walletIndices = this.loadWalletIndices();
+
         // Start cleanup interval for expired sessions
         this.startCleanupInterval();
     }
@@ -69,7 +79,7 @@ class PaymentSessionManager {
     createSession(data) {
         const now = new Date();
         const expiresAt = new Date(now.getTime() + config.SESSION_EXPIRY_MS);
-        
+
         const session = {
             id: uuidv4(),
             userId: data.userId,
@@ -82,11 +92,12 @@ class PaymentSessionManager {
             receivedAmount: null,
             status: 'pending',
             confirmations: 0,
-            requiredConfirmations: data.cryptocurrency === 'btc' 
-                ? config.BTC_CONFIRMATIONS_REQUIRED 
+            requiredConfirmations: data.cryptocurrency === 'btc'
+                ? config.BTC_CONFIRMATIONS_REQUIRED
                 : config.ETH_CONFIRMATIONS_REQUIRED,
             txHash: null,
             blockHeight: null,
+            addressIndex: data.addressIndex || null,
             metadata: data.metadata || {},
             createdAt: now.toISOString(),
             updatedAt: now.toISOString(),
@@ -99,10 +110,10 @@ class PaymentSessionManager {
 
         // Store in main map
         this.sessions.set(session.id, session);
-        
+
         // Add to address index
         this.addressIndex.set(session.paymentAddress.toLowerCase(), session.id);
-        
+
         // Add to user index
         if (!this.userIndex.has(session.userId)) {
             this.userIndex.set(session.userId, new Set());
@@ -110,7 +121,7 @@ class PaymentSessionManager {
         this.userIndex.get(session.userId).add(session.id);
 
         console.log(`Created payment session: ${session.id} for user ${session.userId}`);
-        
+
         return { ...session };
     }
 
@@ -146,7 +157,7 @@ class PaymentSessionManager {
     getSessionsByUser(userId) {
         const sessionIds = this.userIndex.get(userId);
         if (!sessionIds) return [];
-        
+
         return Array.from(sessionIds)
             .map(id => this.getSession(id))
             .filter(Boolean);
@@ -181,7 +192,7 @@ class PaymentSessionManager {
         });
 
         console.log(`Updated session ${sessionId}:`, allowedUpdates);
-        
+
         return { ...session };
     }
 
@@ -331,7 +342,7 @@ class PaymentSessionManager {
 
         // Remove from indexes
         this.addressIndex.delete(session.paymentAddress.toLowerCase());
-        
+
         const userSessions = this.userIndex.get(session.userId);
         if (userSessions) {
             userSessions.delete(sessionId);
@@ -402,7 +413,7 @@ class PaymentSessionManager {
      */
     getStatistics() {
         const sessions = Array.from(this.sessions.values());
-        
+
         const stats = {
             total: sessions.length,
             byStatus: {},
@@ -428,6 +439,48 @@ class PaymentSessionManager {
         this.addressIndex.clear();
         this.userIndex.clear();
         console.log('All sessions cleared');
+    }
+
+    /**
+     * Load wallet indices from file
+     */
+    loadWalletIndices() {
+        try {
+            const dataDir = path.dirname(INDEX_FILE);
+            if (!fs.existsSync(dataDir)) {
+                fs.mkdirSync(dataDir, { recursive: true });
+            }
+
+            if (fs.existsSync(INDEX_FILE)) {
+                const content = fs.readFileSync(INDEX_FILE, 'utf8');
+                return JSON.parse(content);
+            }
+        } catch (error) {
+            console.error('Error loading wallet indices:', error);
+        }
+        return { btc: 0, eth: 0, btc_test: 0, eth_test: 0 };
+    }
+
+    /**
+     * Save wallet indices to file
+     */
+    saveWalletIndices() {
+        try {
+            fs.writeFileSync(INDEX_FILE, JSON.stringify(this.walletIndices, null, 2));
+        } catch (error) {
+            console.error('Error saving wallet indices:', error);
+        }
+    }
+
+    /**
+     * Get next index for a cryptocurrency and increment
+     */
+    getNextIndex(crypto) {
+        const key = crypto.toLowerCase();
+        const index = this.walletIndices[key] || 0;
+        this.walletIndices[key] = index + 1;
+        this.saveWalletIndices();
+        return index;
     }
 }
 

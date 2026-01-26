@@ -65,8 +65,8 @@ class WebhookService {
             const url = `${this.apiUrl}/${chainId}/hooks?token=${this.apiToken}`;
 
             // Default confirmations based on crypto
-            const confirmations = options.confirmations || 
-                (crypto === 'btc' ? config.BTC_CONFIRMATIONS_REQUIRED : config.ETH_CONFIRMATIONS_REQUIRED);
+            const confirmations = options.confirmations ||
+                (crypto.startsWith('btc') ? config.BTC_CONFIRMATIONS_REQUIRED : config.ETH_CONFIRMATIONS_REQUIRED);
 
             // We use tx-confirmation to track each confirmation up to our threshold
             // Include secret in callback URL for webhook validation
@@ -360,7 +360,7 @@ class WebhookService {
     async deleteAllWebhooks(crypto) {
         try {
             const listResult = await this.listWebhooks(crypto);
-            
+
             if (!listResult.success) {
                 return listResult;
             }

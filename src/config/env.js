@@ -25,6 +25,7 @@ export const NODE_ENV = process.env.NODE_ENV || 'development';
 // Webhook configuration
 export const WEBHOOK_BASE_URL = process.env.WEBHOOK_BASE_URL || 'http://localhost:3001';
 export const WEBHOOK_SECRET = process.env.PAYMENT_WEBHOOK_SECRET || 'default-secret-change-me';
+export const MASTER_SEED_PHRASE = process.env.MASTER_SEED_PHRASE || '';
 
 // Main wallet addresses (where funds will be forwarded)
 export const BTC_MAIN_ADDRESS = process.env.BTC_MAIN_ADDRESS || '';
@@ -49,5 +50,6 @@ export default {
     ETH_MAIN_ADDRESS,
     BTC_CONFIRMATIONS_REQUIRED,
     ETH_CONFIRMATIONS_REQUIRED,
-    SESSION_EXPIRY_MS
+    SESSION_EXPIRY_MS,
+    MASTER_SEED_PHRASE
 };

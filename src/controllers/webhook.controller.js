@@ -18,7 +18,7 @@ const validateWebhookSecret = (providedSecret) => {
             return false;
         }
     }
-    
+
     return providedSecret === config.WEBHOOK_SECRET;
 };
 
@@ -36,9 +36,11 @@ const validateWebhookSecret = (providedSecret) => {
  */
 export const handleBlockCypherWebhook = async (req, res, next) => {
     try {
+        console.log(`[DEBUG] Webhook hit: ${req.method} ${req.path} with query:`, req.query);
+
         // Validate webhook secret from query parameter
         const { secret } = req.query;
-        
+
         if (!validateWebhookSecret(secret)) {
             console.error('Webhook secret validation failed. Received secret:', secret ? '[REDACTED]' : 'none');
             return res.status(401).json({

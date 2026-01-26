@@ -19,7 +19,7 @@ class ConfirmationService {
             btc: config.BTC_CONFIRMATIONS_REQUIRED,
             eth: config.ETH_CONFIRMATIONS_REQUIRED
         };
-        
+
         // Callbacks for different events
         this.eventHandlers = {
             onPaymentDetected: [],
@@ -337,7 +337,7 @@ class ConfirmationService {
 
         // Import address service to check transaction
         const { addressService } = await import('./address.service.js');
-        
+
         // Get address info to check for transactions
         const addressInfo = await addressService.getAddressInfo(
             session.cryptocurrency,
