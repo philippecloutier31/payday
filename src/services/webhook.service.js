@@ -35,15 +35,17 @@ class WebhookService {
 
     /**
      * Get the BlockCypher chain identifier for a cryptocurrency
-     * @param {string} crypto - 'btc' or 'eth'
+     * @param {string} crypto - 'btc', 'eth', or 'bcy'
      * @returns {string} Chain identifier for BlockCypher API
      */
     getChainId(crypto) {
         const chains = {
             btc: 'btc/main',
             eth: 'eth/main',
+            bcy: 'bcy/test',       // BlockCypher Test Chain (free test coins)
             btc_test: 'btc/test3',
-            eth_test: 'beth/test'
+            eth_test: 'beth/test',
+            bcy_test: 'bcy/test'   // Alias for bcy
         };
         return chains[crypto] || chains.btc;
     }
@@ -65,8 +67,16 @@ class WebhookService {
             const url = `${this.apiUrl}/${chainId}/hooks?token=${this.apiToken}`;
 
             // Default confirmations based on crypto
-            const confirmations = options.confirmations ||
-                (crypto.startsWith('btc') ? config.BTC_CONFIRMATIONS_REQUIRED : config.ETH_CONFIRMATIONS_REQUIRED);
+            let confirmations = options.confirmations;
+            if (!confirmations) {
+                if (crypto === 'bcy') {
+                    confirmations = config.BCY_CONFIRMATIONS_REQUIRED;
+                } else if (crypto.startsWith('btc')) {
+                    confirmations = config.BTC_CONFIRMATIONS_REQUIRED;
+                } else {
+                    confirmations = config.ETH_CONFIRMATIONS_REQUIRED;
+                }
+            }
 
             // We use tx-confirmation to track each confirmation up to our threshold
             // Include secret in callback URL for webhook validation

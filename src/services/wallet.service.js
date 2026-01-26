@@ -80,8 +80,15 @@ class WalletService {
      * Generate address for given crypto and index
      * @param {string} crypto - 'btc', 'btc_test', 'eth', 'eth_test'
      * @param {number} index - Index for derivation
+     * @returns {Object} { address, privateKey, wif (for BTC), path }
+     * @throws {Error} If crypto is 'bcy' (must use BlockCypher API) or unsupported
      */
     generateLocalAddress(crypto, index) {
+        // BCY cannot be generated locally - must use BlockCypher API
+        if (crypto === 'bcy') {
+            throw new Error('BCY addresses cannot be generated locally. Use BlockCypher API instead.');
+        }
+
         const isTestnet = crypto.includes('_test');
         const type = crypto.split('_')[0];
 
@@ -92,6 +99,15 @@ class WalletService {
         } else {
             throw new Error(`Unsupported cryptocurrency: ${crypto}`);
         }
+    }
+
+    /**
+     * Check if a cryptocurrency can be generated locally
+     * @param {string} crypto - Cryptocurrency identifier
+     * @returns {boolean} True if can be generated locally
+     */
+    canGenerateLocally(crypto) {
+        return ['btc', 'btc_test', 'eth', 'eth_test'].includes(crypto.toLowerCase());
     }
 }
 

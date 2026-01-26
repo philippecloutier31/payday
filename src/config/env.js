@@ -30,13 +30,24 @@ export const MASTER_SEED_PHRASE = process.env.MASTER_SEED_PHRASE || '';
 // Main wallet addresses (where funds will be forwarded)
 export const BTC_MAIN_ADDRESS = process.env.BTC_MAIN_ADDRESS || '';
 export const ETH_MAIN_ADDRESS = process.env.ETH_MAIN_ADDRESS || '';
+export const BCY_MAIN_ADDRESS = process.env.BCY_MAIN_ADDRESS || process.env.TEST_RECEIVING_ADDRESS || '';
 
 // Confirmation thresholds
 export const BTC_CONFIRMATIONS_REQUIRED = parseInt(process.env.BTC_CONFIRMATIONS_REQUIRED || '3', 10);
 export const ETH_CONFIRMATIONS_REQUIRED = parseInt(process.env.ETH_CONFIRMATIONS_REQUIRED || '12', 10);
+export const BCY_CONFIRMATIONS_REQUIRED = parseInt(process.env.BCY_CONFIRMATIONS_REQUIRED || '1', 10);
 
 // Payment session expiry (in milliseconds)
 export const SESSION_EXPIRY_MS = parseInt(process.env.SESSION_EXPIRY_MS || '3600000', 10); // 1 hour default
+
+// Main backend configuration (for callback on payment completion)
+export const MAIN_BACKEND_URL = process.env.MAIN_BACKEND_URL || 'http://localhost:5000';
+export const MAIN_BACKEND_WEBHOOK_SECRET = process.env.MAIN_BACKEND_WEBHOOK_SECRET || '';
+
+// Test wallet configuration (BlockCypher Test Chain - bcy/test)
+export const TEST_SENDING_PRIVATE_KEY = process.env.TEST_SENDING_PRIVATE_KEY || '';
+export const TEST_SENDING_ADDRESS = process.env.TEST_SENDING_ADDRESS || '';
+export const TEST_RECEIVING_ADDRESS = process.env.TEST_RECEIVING_ADDRESS || '';
 
 // Export all config as object for convenience
 export default {
@@ -48,8 +59,15 @@ export default {
     WEBHOOK_SECRET,
     BTC_MAIN_ADDRESS,
     ETH_MAIN_ADDRESS,
+    BCY_MAIN_ADDRESS,
     BTC_CONFIRMATIONS_REQUIRED,
     ETH_CONFIRMATIONS_REQUIRED,
+    BCY_CONFIRMATIONS_REQUIRED,
     SESSION_EXPIRY_MS,
-    MASTER_SEED_PHRASE
+    MASTER_SEED_PHRASE,
+    MAIN_BACKEND_URL,
+    MAIN_BACKEND_WEBHOOK_SECRET,
+    TEST_SENDING_PRIVATE_KEY,
+    TEST_SENDING_ADDRESS,
+    TEST_RECEIVING_ADDRESS
 };
