@@ -50,7 +50,9 @@ class ConfirmationService {
      */
     async emit(event, data) {
         const handlers = this.eventHandlers[event] || [];
+        console.log(`[DEBUG] Emitting event: ${event} (${handlers.length} handlers)`);
         for (const handler of handlers) {
+
             try {
                 await handler(data);
             } catch (error) {
@@ -126,13 +128,13 @@ class ConfirmationService {
     calculateReceivedAmount(session, outputs, total, received) {
         // If BlockCypher provides received amount directly, use it
         if (received !== undefined && received !== null) {
-            const divisor = session.cryptocurrency === 'btc' ? 1e8 : 1e18;
+            const divisor = (session.cryptocurrency.startsWith('btc') || session.cryptocurrency.startsWith('bcy')) ? 1e8 : 1e18;
             return received / divisor;
         }
 
         // Otherwise, calculate from outputs
         if (outputs && Array.isArray(outputs)) {
-            const divisor = session.cryptocurrency === 'btc' ? 1e8 : 1e18;
+            const divisor = (session.cryptocurrency.startsWith('btc') || session.cryptocurrency.startsWith('bcy')) ? 1e8 : 1e18;
             let totalReceived = 0;
 
             for (const output of outputs) {
@@ -147,7 +149,7 @@ class ConfirmationService {
 
         // Fallback to total
         if (total !== undefined && total !== null) {
-            const divisor = session.cryptocurrency === 'btc' ? 1e8 : 1e18;
+            const divisor = (session.cryptocurrency.startsWith('btc') || session.cryptocurrency.startsWith('bcy')) ? 1e8 : 1e18;
             return total / divisor;
         }
 

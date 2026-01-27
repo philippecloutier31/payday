@@ -27,8 +27,8 @@ class AddressService {
             bcy: 'bcy/test',      // BlockCypher Test Chain (free test coins)
             // Test networks (can be used for development)
             btc_test: 'btc/test3', // Bitcoin testnet
-            eth_test: 'beth/test', // BlockCypher Ethereum testnet
-            bcy_test: 'bcy/test'   // BlockCypher Test Chain (alias)
+            eth_test: 'beth/test',  // BlockCypher Ethereum testnet
+            bcy_test: 'bcy/test'
         };
         return chains[crypto] || chains.btc;
     }
@@ -52,16 +52,9 @@ class AddressService {
             const url = `${this.apiUrl}/${chainId}/payments?token=${this.apiToken}`;
 
             // Set default confirmations based on cryptocurrency
-            let defaultConfirmations;
-            if (crypto === 'btc') {
-                defaultConfirmations = config.BTC_CONFIRMATIONS_REQUIRED;
-            } else if (crypto === 'eth') {
-                defaultConfirmations = config.ETH_CONFIRMATIONS_REQUIRED;
-            } else if (crypto === 'bcy') {
-                defaultConfirmations = config.BCY_CONFIRMATIONS_REQUIRED;
-            } else {
-                defaultConfirmations = 3; // fallback
-            }
+            const defaultConfirmations = crypto === 'btc'
+                ? config.BTC_CONFIRMATIONS_REQUIRED
+                : config.ETH_CONFIRMATIONS_REQUIRED;
 
             const requestBody = {
                 destination: destinationAddress,
@@ -329,8 +322,49 @@ class AddressService {
             };
         }
     }
+
+    /**
+     * Send a transaction from a local address
+     * 
+     * @param {string} crypto - 'btc', 'bcy_test', or 'eth'
+     * @param {string} fromPrivateKey - Private key of sender
+     * @param {string} toAddress - Destination address
+     * @param {number} amount - Amount in UNIT (BTC/ETH)
+     * @returns {Promise<Object>} Transaction result
+     */
+    async sendTransaction(crypto, fromPrivateKey, toAddress, amount) {
+        try {
+            const chainId = this.getChainId(crypto);
+            const isBitcoinLike = crypto.includes('btc') || crypto.includes('bcy');
+
+            if (isBitcoinLike) {
+                // Use BlockCypher Micro-transaction API (handles UTXO and fees automatically)
+                const url = `${this.apiUrl}/${chainId}/txs/micro?token=${this.apiToken}`;
+                const amountSats = Math.floor(amount * 1e8);
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        from_private: fromPrivateKey,
+                        to_address: toAddress,
+                        value_satoshis: amountSats
+                    })
+                });
+
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.error || JSON.stringify(data));
+
+                return { success: true, txHash: data.hash, fees: data.fees / 1e8 };
+            } else {
+                return { success: false, error: 'ETH provider not configured for automatic sweeping' };
+            }
+        } catch (error) {
+            console.error(`Error sending ${crypto} transaction:`, error);
+            return { success: false, error: error.message };
+        }
+    }
 }
 
-// Export singleton instance
 export const addressService = new AddressService();
 export default addressService;

@@ -26,26 +26,20 @@ export const createPaymentAddress = async (req, res, next) => {
             });
         }
 
-        const crypto = cryptocurrency.toLowerCase().trim();
-        if (!['btc', 'eth', 'bcy', 'btc_test', 'eth_test'].includes(crypto)) {
+        const crypto = cryptocurrency.toLowerCase();
+        if (!['btc', 'eth', 'btc_test', 'eth_test', 'bcy_test'].includes(crypto)) {
             return res.status(400).json({
                 success: false,
-                error: `cryptocurrency must be one of: btc, eth, bcy, btc_test, or eth_test. Received: "${cryptocurrency}"`
+                error: 'cryptocurrency must be btc, eth, btc_test, eth_test or bcy_test'
             });
         }
 
         // Log chain and amount for payment address creation
         console.log(`[PaymentGateway] Creating payment address - Chain: ${crypto.toUpperCase()}, Amount: ${amount || 'N/A'}, UserId: ${userId}`);
 
-        // Get main address based on cryptocurrency (for eventual manual/auto forwarding)
-        let mainAddress;
-        if (crypto === 'bcy') {
-            mainAddress = config.BCY_MAIN_ADDRESS;
-        } else if (crypto.startsWith('btc')) {
-            mainAddress = config.BTC_MAIN_ADDRESS;
-        } else {
-            mainAddress = config.ETH_MAIN_ADDRESS;
-        }
+        // Get main address based on cryptocurrency
+        const mainAddress = (crypto.includes('btc') || crypto.includes('bcy')) ? config.BTC_MAIN_ADDRESS : config.ETH_MAIN_ADDRESS;
+
 
         // Get next derivation index
         const index = paymentSessionManager.getNextIndex(crypto);

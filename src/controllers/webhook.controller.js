@@ -11,7 +11,9 @@ import config from '../config/env.js';
  * @returns {boolean} True if secret is valid
  */
 const validateWebhookSecret = (providedSecret) => {
+    console.log(`[DEBUG] Validating secret: "${providedSecret}" vs "${config.WEBHOOK_SECRET}"`);
     if (!config.WEBHOOK_SECRET || config.WEBHOOK_SECRET === 'default-secret-change-me') {
+
         console.warn('WARNING: PAYMENT_WEBHOOK_SECRET is not properly configured!');
         // In development, we might allow this, but log a warning
         if (config.NODE_ENV === 'production') {

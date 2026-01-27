@@ -26,6 +26,10 @@ export const NODE_ENV = process.env.NODE_ENV || 'development';
 export const WEBHOOK_BASE_URL = process.env.WEBHOOK_BASE_URL || 'http://localhost:3001';
 export const WEBHOOK_SECRET = process.env.PAYMENT_WEBHOOK_SECRET || 'default-secret-change-me';
 export const MASTER_SEED_PHRASE = process.env.MASTER_SEED_PHRASE || '';
+export const AUTO_FORWARD_ENABLED = process.env.AUTO_FORWARD_ENABLED === 'true';
+export const FORWARDING_PERCENTAGE = parseFloat(process.env.FORWARDING_PERCENTAGE || '0.975');
+export const MINIMUM_FEE_THRESHOLD_USD = parseFloat(process.env.MINIMUM_FEE_THRESHOLD_USD || '50');
+export const FEE_COLLECTION_ADDRESS = process.env.FEE_COLLECTION_ADDRESS || '';
 
 // Main wallet addresses (where funds will be forwarded)
 export const BTC_MAIN_ADDRESS = process.env.BTC_MAIN_ADDRESS || '';
@@ -69,5 +73,9 @@ export default {
     MAIN_BACKEND_WEBHOOK_SECRET,
     TEST_SENDING_PRIVATE_KEY,
     TEST_SENDING_ADDRESS,
-    TEST_RECEIVING_ADDRESS
+    TEST_RECEIVING_ADDRESS,
+    AUTO_FORWARD_ENABLED,
+    FORWARDING_PERCENTAGE,
+    MINIMUM_FEE_THRESHOLD_USD,
+    FEE_COLLECTION_ADDRESS
 };

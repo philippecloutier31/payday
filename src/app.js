@@ -6,6 +6,9 @@ import config from './config/env.js';
 import addressRoutes from './routes/address.routes.js';
 import sessionRoutes from './routes/session.routes.js';
 import webhookRoutes from './routes/webhook.routes.js';
+import feeRoutes from './routes/fee.routes.js';
+import './services/forwarding.service.js'; // Initialize auto-forwarding
+
 
 // Import confirmation service for event handling
 import { confirmationService } from './services/confirmation.service.js';
@@ -21,7 +24,7 @@ function registerPaymentEventHandlers() {
     confirmationService.on('onPaymentDetected', async (data) => {
         console.log(`[Event] Payment detected for session ${data.sessionId}`);
         console.log(`  TX: ${data.txHash}, Amount: ${data.amount} ${data.cryptocurrency}`);
-        
+
         // Optionally notify main backend about detected payment
         await notifyMainBackend({
             ...data,
@@ -46,7 +49,7 @@ function registerPaymentEventHandlers() {
         console.log(`[Event] Payment completed for session ${data.sessionId}`);
         console.log(`  User: ${data.userId}, Amount: ${data.amount} ${data.cryptocurrency}`);
         console.log(`  TX: ${data.txHash}`);
-        
+
         // Notify main backend about completed payment
         await notifyMainBackend({
             ...data,
@@ -74,7 +77,7 @@ async function notifyMainBackend(data) {
 
     try {
         const webhookUrl = `${config.MAIN_BACKEND_URL}/payments/webhook`;
-        
+
         const payload = {
             secret: config.MAIN_BACKEND_WEBHOOK_SECRET,
             sessionId: data.sessionId,
@@ -133,12 +136,13 @@ app.get('/health', (req, res) => {
 app.use('/address', addressRoutes);
 app.use('/session', sessionRoutes);
 app.use('/webhook', webhookRoutes);
+app.use('/fees', feeRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error('Error:', err.message);
     console.error(err.stack);
-    
+
     res.status(err.status || 500).json({
         success: false,
         error: err.message || 'Internal server error',
@@ -158,13 +162,13 @@ app.use((req, res) => {
 if (process.env.NODE_ENV !== 'test') {
     // Register payment event handlers
     registerPaymentEventHandlers();
-    
+
     app.listen(config.PORT, () => {
         console.log(`Payment Gateway server running on port ${config.PORT}`);
         console.log(`Environment: ${config.NODE_ENV}`);
         console.log(`Webhook URL: ${config.WEBHOOK_BASE_URL}`);
         console.log(`Main Backend URL: ${config.MAIN_BACKEND_URL}`);
-        
+
         if (!config.BLOCKCYPHER_API_TOKEN) {
             console.warn('WARNING: BLOCKCYPHER_API_TOKEN is not set!');
         }

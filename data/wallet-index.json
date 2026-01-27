@@ -1,8 +1,7 @@
 {
   "btc": 4,
-  "eth": 0,
+  "eth": 1,
   "btc_test": 7,
   "eth_test": 0,
-  "bcy_test": 2,
-  "bcy": 10
+  "bcy_test": 7
 }

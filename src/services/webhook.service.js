@@ -45,7 +45,7 @@ class WebhookService {
             bcy: 'bcy/test',       // BlockCypher Test Chain (free test coins)
             btc_test: 'btc/test3',
             eth_test: 'beth/test',
-            bcy_test: 'bcy/test'   // Alias for bcy
+            bcy_test: 'bcy/test'
         };
         return chains[crypto] || chains.btc;
     }
