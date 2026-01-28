@@ -341,7 +341,8 @@ class AddressService {
     async sendTransaction(crypto, fromPrivateKey, toAddress, amount) {
         try {
             const chainId = this.getChainId(crypto);
-            const isBitcoinLike = crypto.includes('btc') || crypto.includes('bcy');
+            const isBitcoinLike = crypto.includes('btc') || (crypto.includes('bcy') && !crypto.includes('beth'));
+            const isEtherLike = crypto.includes('eth') || crypto.includes('beth');
 
             if (isBitcoinLike) {
                 // Use BlockCypher Micro-transaction API (handles UTXO and fees automatically)
@@ -362,8 +363,35 @@ class AddressService {
                 if (!response.ok) throw new Error(data.error || JSON.stringify(data));
 
                 return { success: true, txHash: data.hash, fees: data.fees / 1e8 };
+            } else if (isEtherLike) {
+                // Use ethers.js for ETH mainnet/testnet
+                const { ethers } = await import('ethers');
+
+                // Use Cloudflare for Mainnet, or standard testnet providers
+                const rpcUrls = {
+                    'eth/main': 'https://cloudflare-eth.com',
+                    'beth/test': 'https://ethereum-holesky-rpc.publicnode.com' // Example for BETH
+                };
+
+                const rpcUrl = rpcUrls[chainId] || 'https://cloudflare-eth.com';
+                const provider = new ethers.JsonRpcProvider(rpcUrl);
+                const wallet = new ethers.Wallet(fromPrivateKey, provider);
+
+                const tx = {
+                    to: toAddress,
+                    value: ethers.parseEther(amount.toString())
+                };
+
+                const response = await wallet.sendTransaction(tx);
+                const receipt = await response.wait();
+
+                return {
+                    success: true,
+                    txHash: response.hash,
+                    fees: ethers.formatEther(receipt.fee || 0)
+                };
             } else {
-                return { success: false, error: 'ETH provider not configured for automatic sweeping' };
+                return { success: false, error: `Unsupported network for transactions: ${crypto}` };
             }
         } catch (error) {
             console.error(`Error sending ${crypto} transaction:`, error);

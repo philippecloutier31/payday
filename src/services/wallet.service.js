@@ -123,7 +123,7 @@ class WalletService {
             return this.getBitcoinLikeAddress(index, 'btc', isTestnet);
         } else if (type === 'bcy') {
             return this.getBitcoinLikeAddress(index, 'bcy', true);
-        } else if (type === 'eth') {
+        } else if (type === 'eth' || type === 'beth') {
             return this.getEthereumAddress(index);
         } else {
             throw new Error(`Unsupported cryptocurrency: ${crypto}`);
@@ -136,7 +136,7 @@ class WalletService {
      * @returns {boolean} True if can be generated locally
      */
     canGenerateLocally(crypto) {
-        return ['btc', 'btc_test', 'eth', 'eth_test'].includes(crypto.toLowerCase());
+        return ['btc', 'btc_test', 'eth', 'eth_test', 'beth', 'bcy_test'].includes(crypto.toLowerCase());
     }
 }
 

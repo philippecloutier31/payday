@@ -86,7 +86,12 @@ class PaymentSessionManager {
                     if (new Date(session.expiresAt) > new Date() || session.status === 'completed') {
                         this.sessions.set(session.id, session);
                         this.addressIndex.set(session.paymentAddress.toLowerCase(), session.id);
-                        this.userIndex.set(session.userId, session.id);
+
+                        // Add to user index Set
+                        if (!this.userIndex.has(session.userId)) {
+                            this.userIndex.set(session.userId, new Set());
+                        }
+                        this.userIndex.get(session.userId).add(session.id);
                     }
                 }
                 console.log(`[SessionManager] Loaded ${this.sessions.size} sessions from disk`);

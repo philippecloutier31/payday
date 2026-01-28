@@ -131,12 +131,30 @@ class BatchTransactionService {
                         continue;
                     }
 
-                    // Add input to PSBT
-                    psbt.addInput({
-                        hash: utxo.txHash,
-                        index: utxo.outputIndex,
-                        nonWitnessUtxo: Buffer.from(txData.hex, 'hex')
-                    });
+                    // Add input to PSBT. Handle Bech32 (SegWit) vs Legacy
+                    const txHex = Buffer.from(txData.hex, 'hex');
+                    const isBech32 = address.startsWith('bc1') || address.startsWith('tb1') || address.startsWith('bcy');
+
+                    if (isBech32) {
+                        // For SegWit, we need the specific output data
+                        const tx = bitcoin.Transaction.fromHex(txData.hex);
+                        const output = tx.outs[utxo.outputIndex];
+                        psbt.addInput({
+                            hash: utxo.txHash,
+                            index: utxo.outputIndex,
+                            witnessUtxo: {
+                                script: output.script,
+                                value: utxo.value
+                            }
+                        });
+                    } else {
+                        // For Legacy
+                        psbt.addInput({
+                            hash: utxo.txHash,
+                            index: utxo.outputIndex,
+                            nonWitnessUtxo: txHex
+                        });
+                    }
 
                     totalInputValue += utxo.value;
                     inputDetails.push({

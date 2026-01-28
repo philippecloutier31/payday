@@ -126,31 +126,30 @@ class ConfirmationService {
      * @returns {number} Received amount in crypto units
      */
     calculateReceivedAmount(session, outputs, total, received) {
-        // If BlockCypher provides received amount directly, use it
-        if (received !== undefined && received !== null) {
-            const divisor = (session.cryptocurrency.startsWith('btc') || session.cryptocurrency.startsWith('bcy')) ? 1e8 : 1e18;
+        // Find correct divisor (BTC uses 10^8, ETH uses 10^18)
+        const isBitcoinLike = session.cryptocurrency.startsWith('btc') || session.cryptocurrency.startsWith('bcy');
+        const divisor = isBitcoinLike ? 1e8 : 1e18;
+
+        // BlockCypher 'received' can be a timestamp string OR a number (amount)
+        // If it's a number, it's the most reliable direct amount
+        if (typeof received === 'number') {
             return received / divisor;
         }
 
-        // Otherwise, calculate from outputs
-        if (outputs && Array.isArray(outputs)) {
-            const divisor = (session.cryptocurrency.startsWith('btc') || session.cryptocurrency.startsWith('bcy')) ? 1e8 : 1e18;
-            let totalReceived = 0;
+        // If 'received' is a timestamp string, use the 'total' field or calculate from outputs
+        if (typeof total === 'number' && total > 0) {
+            return total / divisor;
+        }
 
+        // Otherwise, calculate from specifically matching outputs
+        if (outputs && Array.isArray(outputs)) {
+            let totalReceived = 0;
             for (const output of outputs) {
-                // Check if this output is to our payment address
                 if (output.addresses && output.addresses.includes(session.paymentAddress)) {
                     totalReceived += output.value || 0;
                 }
             }
-
             return totalReceived / divisor;
-        }
-
-        // Fallback to total
-        if (total !== undefined && total !== null) {
-            const divisor = (session.cryptocurrency.startsWith('btc') || session.cryptocurrency.startsWith('bcy')) ? 1e8 : 1e18;
-            return total / divisor;
         }
 
         return 0;
