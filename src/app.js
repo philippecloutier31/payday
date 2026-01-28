@@ -16,6 +16,9 @@ import { confirmationService } from './services/confirmation.service.js';
 
 const app = express();
 
+// Trust proxy (required for Cloudflare Tunnel / express-rate-limit)
+app.set('trust proxy', 1);
+
 /**
  * Register payment event handlers
  * When a payment is completed, notify the main backend

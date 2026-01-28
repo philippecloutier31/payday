@@ -7,6 +7,7 @@ import config from '../config/env.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const INDEX_FILE = path.join(__dirname, '../../data/wallet-index.json');
+const SESSIONS_FILE = path.join(__dirname, '../../data/sessions.json');
 
 /**
  * Payment Session Manager
@@ -63,11 +64,48 @@ class PaymentSessionManager {
         // Index by user ID
         this.userIndex = new Map();
 
-        // Load persistable indexes
+        // Load persistable data
         this.walletIndices = this.loadWalletIndices();
+        this.loadSessions();
 
         // Start cleanup interval for expired sessions
         this.startCleanupInterval();
+    }
+
+    /**
+     * Load sessions from disk
+     */
+    loadSessions() {
+        try {
+            if (fs.existsSync(SESSIONS_FILE)) {
+                const content = fs.readFileSync(SESSIONS_FILE, 'utf8');
+                const data = JSON.parse(content);
+
+                for (const session of data) {
+                    // Only load non-expired sessions
+                    if (new Date(session.expiresAt) > new Date() || session.status === 'completed') {
+                        this.sessions.set(session.id, session);
+                        this.addressIndex.set(session.paymentAddress.toLowerCase(), session.id);
+                        this.userIndex.set(session.userId, session.id);
+                    }
+                }
+                console.log(`[SessionManager] Loaded ${this.sessions.size} sessions from disk`);
+            }
+        } catch (error) {
+            console.error('[SessionManager] Error loading sessions:', error);
+        }
+    }
+
+    /**
+     * Save sessions to disk
+     */
+    saveSessions() {
+        try {
+            const data = Array.from(this.sessions.values());
+            fs.writeFileSync(SESSIONS_FILE, JSON.stringify(data, null, 2));
+        } catch (error) {
+            console.error('[SessionManager] Error saving sessions:', error);
+        }
     }
 
     /**
@@ -125,6 +163,9 @@ class PaymentSessionManager {
         this.userIndex.get(session.userId).add(session.id);
 
         console.log(`Created payment session: ${session.id} for user ${session.userId}`);
+
+        // Persist to disk
+        this.saveSessions();
 
         return { ...session };
     }
@@ -196,6 +237,9 @@ class PaymentSessionManager {
         });
 
         console.log(`Updated session ${sessionId}:`, allowedUpdates);
+
+        // Persist to disk
+        this.saveSessions();
 
         return { ...session };
     }
