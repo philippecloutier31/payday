@@ -17,14 +17,15 @@ class AddressService {
 
     /**
      * Get the BlockCypher chain identifier for a cryptocurrency
-     * @param {string} crypto - 'btc', 'eth', or 'bcy'
+     * @param {string} crypto - 'btc', 'eth', 'bcy', or 'beth'
      * @returns {string} Chain identifier for BlockCypher API
      */
     getChainId(crypto) {
         const chains = {
             btc: 'btc/main',      // Bitcoin mainnet
             eth: 'eth/main',      // Ethereum mainnet
-            bcy: 'bcy/test',      // BlockCypher Test Chain (free test coins)
+            bcy: 'bcy/test',      // BlockCypher Bitcoin Test Chain (free test coins)
+            beth: 'beth/test',    // BlockCypher Ethereum Test Chain (free test coins)
             // Test networks (can be used for development)
             btc_test: 'btc/test3', // Bitcoin testnet
             eth_test: 'beth/test',  // BlockCypher Ethereum testnet
@@ -52,9 +53,14 @@ class AddressService {
             const url = `${this.apiUrl}/${chainId}/payments?token=${this.apiToken}`;
 
             // Set default confirmations based on cryptocurrency
-            const defaultConfirmations = crypto === 'btc'
-                ? config.BTC_CONFIRMATIONS_REQUIRED
-                : config.ETH_CONFIRMATIONS_REQUIRED;
+            let defaultConfirmations;
+            if (crypto === 'bcy' || crypto === 'beth') {
+                defaultConfirmations = crypto === 'bcy' ? config.BCY_CONFIRMATIONS_REQUIRED : config.BETH_CONFIRMATIONS_REQUIRED;
+            } else if (crypto === 'btc' || crypto === 'btc_test') {
+                defaultConfirmations = config.BTC_CONFIRMATIONS_REQUIRED;
+            } else {
+                defaultConfirmations = config.ETH_CONFIRMATIONS_REQUIRED;
+            }
 
             const requestBody = {
                 destination: destinationAddress,

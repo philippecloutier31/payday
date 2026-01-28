@@ -15,7 +15,7 @@ export const createPaymentAddress = async (req, res, next) => {
         if (!cryptocurrency) {
             return res.status(400).json({
                 success: false,
-                error: 'cryptocurrency is required (btc, eth, bcy, btc_test, or eth_test)'
+                error: 'cryptocurrency is required (btc, eth, bcy, beth, btc_test, or eth_test)'
             });
         }
 
@@ -27,10 +27,10 @@ export const createPaymentAddress = async (req, res, next) => {
         }
 
         const crypto = cryptocurrency.toLowerCase();
-        if (!['btc', 'eth', 'btc_test', 'eth_test', 'bcy_test'].includes(crypto)) {
+        if (!['btc', 'eth', 'btc_test', 'eth_test', 'bcy', 'beth'].includes(crypto)) {
             return res.status(400).json({
                 success: false,
-                error: 'cryptocurrency must be btc, eth, btc_test, eth_test or bcy_test'
+                error: 'cryptocurrency must be btc, eth, btc_test, eth_test, bcy, or beth'
             });
         }
 
@@ -38,7 +38,16 @@ export const createPaymentAddress = async (req, res, next) => {
         console.log(`[PaymentGateway] Creating payment address - Chain: ${crypto.toUpperCase()}, Amount: ${amount || 'N/A'}, UserId: ${userId}`);
 
         // Get main address based on cryptocurrency
-        const mainAddress = (crypto.includes('btc') || crypto.includes('bcy')) ? config.BTC_MAIN_ADDRESS : config.ETH_MAIN_ADDRESS;
+        let mainAddress;
+        if (crypto === 'beth') {
+            mainAddress = config.BETH_MAIN_ADDRESS;
+        } else if (crypto === 'bcy') {
+            mainAddress = config.BCY_MAIN_ADDRESS;
+        } else if (crypto.includes('btc')) {
+            mainAddress = config.BTC_MAIN_ADDRESS;
+        } else {
+            mainAddress = config.ETH_MAIN_ADDRESS;
+        }
 
 
         // Get next derivation index
@@ -47,21 +56,21 @@ export const createPaymentAddress = async (req, res, next) => {
         let paymentAddress;
         let addressSource;
 
-        // BCY uses BlockCypher API to generate addresses (proprietary test chain)
+        // BCY and BETH use BlockCypher API to generate addresses (proprietary test chains)
         // BTC, ETH, and their testnets use local HD wallet derivation
-        if (crypto === 'bcy') {
-            // Generate BCY address via BlockCypher API
-            const bcyResult = await addressService.generateAddress('bcy');
-            if (!bcyResult.success) {
-                console.error(`[PaymentGateway] Failed to generate BCY address via BlockCypher API:`, bcyResult.error);
+        if (crypto === 'bcy' || crypto === 'beth') {
+            // Generate BCY/BETH address via BlockCypher API
+            const testResult = await addressService.generateAddress(crypto);
+            if (!testResult.success) {
+                console.error(`[PaymentGateway] Failed to generate ${crypto.toUpperCase()} address via BlockCypher API:`, testResult.error);
                 return res.status(500).json({
                     success: false,
-                    error: 'Failed to generate BCY address. BlockCypher API error.'
+                    error: `Failed to generate ${crypto.toUpperCase()} address. BlockCypher API error.`
                 });
             }
-            paymentAddress = bcyResult.address;
+            paymentAddress = testResult.address;
             addressSource = 'blockcypher_api';
-            console.log(`[PaymentGateway] BCY address generated via BlockCypher API: ${paymentAddress}`);
+            console.log(`[PaymentGateway] ${crypto.toUpperCase()} address generated via BlockCypher API: ${paymentAddress}`);
         } else {
             // Generate address locally using HD wallet derivation
             let localWallet;

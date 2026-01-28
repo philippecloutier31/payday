@@ -92,11 +92,13 @@ class PaymentSessionManager {
             receivedAmount: null,
             status: 'pending',
             confirmations: 0,
-            requiredConfirmations: (data.cryptocurrency.startsWith('btc') || data.cryptocurrency.startsWith('bcy'))
-                ? config.BTC_CONFIRMATIONS_REQUIRED
-                : data.cryptocurrency === 'bcy'
-                    ? config.BCY_CONFIRMATIONS_REQUIRED
-                    : config.ETH_CONFIRMATIONS_REQUIRED,
+            requiredConfirmations: data.cryptocurrency === 'bcy'
+                ? config.BCY_CONFIRMATIONS_REQUIRED
+                : data.cryptocurrency === 'beth'
+                    ? config.BETH_CONFIRMATIONS_REQUIRED
+                    : data.cryptocurrency.startsWith('btc')
+                        ? config.BTC_CONFIRMATIONS_REQUIRED
+                        : config.ETH_CONFIRMATIONS_REQUIRED,
             txHash: null,
             blockHeight: null,
             addressIndex: data.addressIndex || null,
@@ -460,7 +462,7 @@ class PaymentSessionManager {
         } catch (error) {
             console.error('Error loading wallet indices:', error);
         }
-        return { btc: 0, eth: 0, btc_test: 0, eth_test: 0, bcy_test: 0 };
+        return { btc: 0, eth: 0, btc_test: 0, eth_test: 0, bcy: 0, beth: 0 };
     }
 
     /**

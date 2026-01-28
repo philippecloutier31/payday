@@ -35,14 +35,15 @@ class WebhookService {
 
     /**
      * Get the BlockCypher chain identifier for a cryptocurrency
-     * @param {string} crypto - 'btc', 'eth', or 'bcy'
+     * @param {string} crypto - 'btc', 'eth', 'bcy', or 'beth'
      * @returns {string} Chain identifier for BlockCypher API
      */
     getChainId(crypto) {
         const chains = {
             btc: 'btc/main',
             eth: 'eth/main',
-            bcy: 'bcy/test',       // BlockCypher Test Chain (free test coins)
+            bcy: 'bcy/test',       // BlockCypher Bitcoin Test Chain (free test coins)
+            beth: 'beth/test',     // BlockCypher Ethereum Test Chain (free test coins)
             btc_test: 'btc/test3',
             eth_test: 'beth/test',
             bcy_test: 'bcy/test'
@@ -71,6 +72,8 @@ class WebhookService {
             if (!confirmations) {
                 if (crypto === 'bcy') {
                     confirmations = config.BCY_CONFIRMATIONS_REQUIRED;
+                } else if (crypto === 'beth') {
+                    confirmations = config.BETH_CONFIRMATIONS_REQUIRED;
                 } else if (crypto.startsWith('btc')) {
                     confirmations = config.BTC_CONFIRMATIONS_REQUIRED;
                 } else {
