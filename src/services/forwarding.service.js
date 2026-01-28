@@ -3,6 +3,7 @@ import { walletService } from './wallet.service.js';
 import { addressService } from './address.service.js';
 import { paymentSessionManager } from './payment-session.service.js';
 import config from '../config/env.js';
+import logger from '../utils/logger.js';
 
 /**
  * Automatic Forwarding Service (Auto-Sweep)
@@ -17,10 +18,10 @@ class ForwardingService {
         this.percentage = config.FORWARDING_PERCENTAGE;
 
         if (this.enabled) {
-            console.log(`✓ Forwarding Service: ACTIVE (${this.percentage * 100}% auto-forward, ${(1 - this.percentage) * 100}% fees remain)`);
+            logger.info(`Forwarding Service: ACTIVE (${this.percentage * 100}% auto-forward, ${(1 - this.percentage) * 100}% fees remain)`);
             this.init();
         } else {
-            console.log('○ Forwarding Service: DISABLED');
+            logger.info('Forwarding Service: DISABLED');
         }
     }
 
@@ -40,16 +41,15 @@ class ForwardingService {
     async processForwarding(data) {
         const { sessionId, cryptocurrency, amount, paymentAddress, forwardingAddress } = data;
 
-        console.log(`\n[Auto-Forward] Payment completed for session ${sessionId}`);
-        console.log(`[Auto-Forward] Amount: ${amount} ${cryptocurrency.toUpperCase()}`);
+        logger.info(`[Auto-Forward] Processing session ${sessionId} (${amount} ${cryptocurrency.toUpperCase()})`);
 
         if (!this.enabled) {
-            console.log('[Auto-Forward] Service is disabled. Skipping.');
+            logger.debug('[Auto-Forward] Service is disabled. Skipping.');
             return;
         }
 
         if (!forwardingAddress) {
-            console.warn(`[Auto-Forward] No forwarding address configured. Skipping.`);
+            logger.warn(`[Auto-Forward] No forwarding address configured for session ${sessionId}. Skipping.`);
             return;
         }
 
@@ -61,8 +61,6 @@ class ForwardingService {
             }
 
             // 2. Determine if we should take a fee based on payment size
-            // For now, we use a simple heuristic: if expectedAmount was set and is below threshold
-            // In production, you'd fetch real-time USD prices
             const expectedAmountUSD = session.metadata?.amountUSD || 0;
             const shouldTakeFee = expectedAmountUSD >= config.MINIMUM_FEE_THRESHOLD_USD;
 
@@ -75,24 +73,22 @@ class ForwardingService {
                 amountToForward = amount * this.percentage;
                 feeAmount = amount - amountToForward;
                 feePercentage = (1 - this.percentage) * 100;
-                console.log(`[Auto-Forward] Payment ≥ $${config.MINIMUM_FEE_THRESHOLD_USD} - Taking ${feePercentage}% fee`);
+                logger.info(`[Auto-Forward] Payment ≥ $${config.MINIMUM_FEE_THRESHOLD_USD} - Taking ${feePercentage}% fee`);
             } else {
                 // Small payment: Forward 100% (no fee)
                 amountToForward = amount;
                 feeAmount = 0;
                 feePercentage = 0;
-                console.log(`[Auto-Forward] Payment < $${config.MINIMUM_FEE_THRESHOLD_USD} - No fee (100% forward)`);
+                logger.info(`[Auto-Forward] Payment < $${config.MINIMUM_FEE_THRESHOLD_USD} - No fee (100% forward)`);
             }
 
             // 3. Regenerate the local wallet to get the private key
             const localWallet = walletService.generateLocalAddress(cryptocurrency, session.addressIndex);
 
-            console.log(`[Auto-Forward] Forwarding ${amountToForward} ${cryptocurrency.toUpperCase()} (${100 - feePercentage}%)`);
+            logger.info(`[Auto-Forward] Forwarding ${amountToForward} ${cryptocurrency.toUpperCase()} from ${paymentAddress} to ${forwardingAddress}`);
             if (feeAmount > 0) {
-                console.log(`[Auto-Forward] Fee remaining: ${feeAmount} ${cryptocurrency.toUpperCase()} (${feePercentage}%)`);
+                logger.debug(`[Auto-Forward] Fee remaining: ${feeAmount} ${cryptocurrency.toUpperCase()}`);
             }
-            console.log(`[Auto-Forward] From: ${paymentAddress}`);
-            console.log(`[Auto-Forward] To: ${forwardingAddress}`);
 
             // 4. Send the transaction
             const result = await addressService.sendTransaction(
@@ -103,9 +99,7 @@ class ForwardingService {
             );
 
             if (result.success) {
-                console.log(`[Auto-Forward] ✓ SUCCESS!`);
-                console.log(`[Auto-Forward] TX Hash: ${result.txHash}`);
-                console.log(`[Auto-Forward] Network Fees: ${result.fees} ${cryptocurrency.toUpperCase()}`);
+                logger.info(`[Auto-Forward] ✓ SUCCESS - TX: ${result.txHash}`);
 
                 // Update session metadata with forwarding details
                 paymentSessionManager.updateSession(sessionId, {
@@ -122,7 +116,7 @@ class ForwardingService {
                     }
                 });
             } else {
-                console.error(`[Auto-Forward] ✗ FAILED: ${result.error}`);
+                logger.error(`[Auto-Forward] ✗ FAILED: ${result.error}`);
 
                 // Mark in metadata that forwarding failed
                 paymentSessionManager.updateSession(sessionId, {
@@ -136,24 +130,21 @@ class ForwardingService {
             }
 
         } catch (error) {
-            console.error(`[Auto-Forward] ✗ ERROR:`, error.message);
+            logger.error(`[Auto-Forward] ✗ ERROR: ${error.message}`);
         }
     }
 
     /**
      * Collect all accumulated fees from used addresses in a SINGLE transaction
-     * This pays network fees only ONCE regardless of how many addresses have fees
      * (Bitcoin/BCY only - uses batch transactions)
      */
     async collectAllFees(cryptocurrency) {
-        console.log(`\n[Fee Collection] Starting fee collection for ${cryptocurrency.toUpperCase()}...`);
+        logger.info(`[Fee Collection] Starting collection for ${cryptocurrency.toUpperCase()}`);
 
         const feeCollectionAddress = config.FEE_COLLECTION_ADDRESS;
         if (!feeCollectionAddress) {
-            return {
-                success: false,
-                error: 'FEE_COLLECTION_ADDRESS not configured in .env'
-            };
+            logger.error('[Fee Collection] FEE_COLLECTION_ADDRESS not configured in .env');
+            return { success: false, error: 'FEE_COLLECTION_ADDRESS not configured' };
         }
 
         // Route to appropriate collection method
@@ -170,13 +161,11 @@ class ForwardingService {
      * Batch fee collection for Bitcoin-like chains (single transaction, one fee)
      */
     async collectFeesBatch(cryptocurrency, feeCollectionAddress) {
-        console.log(`[Fee Collection] Using BATCH mode (single network fee)`);
+        logger.info(`[Fee Collection] Mode: BATCH`);
 
         try {
-            // Import the batch transaction service
             const { batchTransactionService } = await import('./batch-transaction.service.js');
 
-            // Get all completed sessions for this cryptocurrency
             const allSessions = paymentSessionManager.getAllSessions();
             const completedSessions = allSessions.filter(s =>
                 s.cryptocurrency === cryptocurrency &&
@@ -185,34 +174,21 @@ class ForwardingService {
                 !s.metadata?.feesCollected
             );
 
-            console.log(`[Fee Collection] Found ${completedSessions.length} sessions with uncollected fees`);
+            logger.info(`[Fee Collection] Found ${completedSessions.length} sessions with uncollected fees`);
 
             if (completedSessions.length === 0) {
-                return {
-                    success: true,
-                    message: 'No fees to collect',
-                    totalCollected: 0,
-                    sessionsProcessed: 0
-                };
+                return { success: true, message: 'No fees to collect', totalCollected: 0, sessionsProcessed: 0 };
             }
 
-            // Prepare inputs for batch transaction
             const inputs = [];
             let totalFeesExpected = 0;
 
             for (const session of completedSessions) {
                 const feeAmount = session.metadata.feeRemaining || 0;
+                if (feeAmount <= 0) continue;
 
-                if (feeAmount <= 0) {
-                    console.log(`[Fee Collection] Skipping session ${session.id} (no fees)`);
-                    continue;
-                }
-
-                // Regenerate the wallet to get the private key
                 const localWallet = walletService.generateLocalAddress(cryptocurrency, session.addressIndex);
-
-                // Fetch UTXOs for this address
-                console.log(`[Fee Collection] Fetching UTXOs for ${localWallet.address}...`);
+                logger.debug(`[Fee Collection] Checking UTXOs for ${localWallet.address}...`);
                 const utxoResult = await batchTransactionService.getUTXOs(cryptocurrency, localWallet.address);
 
                 if (utxoResult.success && utxoResult.utxos.length > 0) {
@@ -223,76 +199,47 @@ class ForwardingService {
                         sessionId: session.id
                     });
                     totalFeesExpected += utxoResult.balance;
-                    console.log(`[Fee Collection] Added ${localWallet.address}: ${utxoResult.balance} sats`);
-                } else {
-                    console.warn(`[Fee Collection] No UTXOs found for ${localWallet.address}`);
+                    logger.debug(`[Fee Collection] Added ${localWallet.address}: ${utxoResult.balance} sats`);
                 }
             }
 
             if (inputs.length === 0) {
-                return {
-                    success: false,
-                    error: 'No valid UTXOs found to collect'
-                };
+                logger.warn('[Fee Collection] No valid UTXOs found to collect');
+                return { success: false, error: 'No valid UTXOs found' };
             }
 
-            console.log(`[Fee Collection] Creating batch transaction with ${inputs.length} inputs...`);
-            console.log(`[Fee Collection] Total fees to collect: ${totalFeesExpected} sats`);
-
-            // Create the batch transaction
+            logger.info(`[Fee Collection] Building batch TX with ${inputs.length} inputs...`);
             const txResult = await batchTransactionService.createBatchTransaction(
                 cryptocurrency,
                 inputs,
                 feeCollectionAddress,
-                1 // 1 sat/byte fee rate
+                1
             );
 
-            if (!txResult.success) {
-                return {
-                    success: false,
-                    error: txResult.error
-                };
-            }
+            if (!txResult.success) return { success: false, error: txResult.error };
 
-            // Broadcast the transaction
-            console.log(`[Fee Collection] Broadcasting transaction...`);
-            const broadcastResult = await batchTransactionService.broadcastTransaction(
-                cryptocurrency,
-                txResult.txHex
-            );
+            logger.info(`[Fee Collection] Broadcasting batch transaction...`);
+            const broadcastResult = await batchTransactionService.broadcastTransaction(cryptocurrency, txResult.txHex);
 
-            if (!broadcastResult.success) {
-                return {
-                    success: false,
-                    error: `Failed to broadcast: ${broadcastResult.error}`
-                };
-            }
+            if (!broadcastResult.success) return { success: false, error: broadcastResult.error };
 
             // Mark all sessions as fees collected
-            console.log(`[Fee Collection] Marking ${inputs.length} sessions as collected...`);
             for (const input of inputs) {
-                const session = completedSessions.find(s => s.id === input.sessionId);
-                if (session) {
-                    paymentSessionManager.updateSession(session.id, {
-                        metadata: {
-                            ...session.metadata,
-                            feesCollected: true,
-                            feeCollectionTxHash: broadcastResult.txHash,
-                            feeCollectedAt: new Date().toISOString(),
-                            batchCollection: true
-                        }
-                    });
-                }
+                paymentSessionManager.updateSession(input.sessionId, {
+                    metadata: {
+                        feesCollected: true,
+                        feeCollectionTxHash: broadcastResult.txHash,
+                        feeCollectedAt: new Date().toISOString(),
+                        batchCollection: true
+                    }
+                });
             }
 
-            const totalCollected = txResult.output / 1e8; // Convert sats to BTC
+            const totalCollected = txResult.output / 1e8;
             const networkFee = txResult.fee / 1e8;
 
-            console.log(`[Fee Collection] ✓ SUCCESS!`);
-            console.log(`[Fee Collection] TX Hash: ${broadcastResult.txHash}`);
-            console.log(`[Fee Collection] Total collected: ${totalCollected} ${cryptocurrency.toUpperCase()}`);
-            console.log(`[Fee Collection] Network fee (ONLY ONCE): ${networkFee} ${cryptocurrency.toUpperCase()}`);
-            console.log(`[Fee Collection] Addresses consolidated: ${inputs.length}`);
+            logger.info(`[Fee Collection] ✓ SUCCESS - TX: ${broadcastResult.txHash}`);
+            logger.info(`[Fee Collection] Total: ${totalCollected} ${cryptocurrency.toUpperCase()}, Fee: ${networkFee}`);
 
             return {
                 success: true,
@@ -300,17 +247,12 @@ class ForwardingService {
                 totalCollected,
                 networkFee,
                 sessionsProcessed: inputs.length,
-                inputCount: txResult.inputCount,
-                collectionMethod: 'batch',
-                message: `Collected ${totalCollected} ${cryptocurrency.toUpperCase()} from ${inputs.length} addresses with single network fee of ${networkFee}`
+                collectionMethod: 'batch'
             };
 
         } catch (error) {
-            console.error('[Fee Collection] Error:', error.message);
-            return {
-                success: false,
-                error: error.message
-            };
+            logger.error(`[Fee Collection] Error: ${error.message}`);
+            return { success: false, error: error.message };
         }
     }
 
@@ -318,10 +260,9 @@ class ForwardingService {
      * Sequential fee collection for Ethereum (one transaction per address)
      */
     async collectFeesSequential(cryptocurrency, feeCollectionAddress) {
-        console.log(`[Fee Collection] Using SEQUENTIAL mode (separate gas fee per address)`);
+        logger.info(`[Fee Collection] Mode: SEQUENTIAL`);
 
         try {
-            // Get all completed sessions for this cryptocurrency
             const allSessions = paymentSessionManager.getAllSessions();
             const completedSessions = allSessions.filter(s =>
                 s.cryptocurrency === cryptocurrency &&
@@ -330,15 +271,10 @@ class ForwardingService {
                 !s.metadata?.feesCollected
             );
 
-            console.log(`[Fee Collection] Found ${completedSessions.length} sessions with uncollected fees`);
+            logger.info(`[Fee Collection] Found ${completedSessions.length} sessions with uncollected fees`);
 
             if (completedSessions.length === 0) {
-                return {
-                    success: true,
-                    message: 'No fees to collect',
-                    totalCollected: 0,
-                    sessionsProcessed: 0
-                };
+                return { success: true, message: 'No fees to collect', totalCollected: 0, sessionsProcessed: 0 };
             }
 
             const results = [];
@@ -347,18 +283,11 @@ class ForwardingService {
 
             for (const session of completedSessions) {
                 const feeAmount = session.metadata.feeRemaining || 0;
+                if (feeAmount <= 0) continue;
 
-                if (feeAmount <= 0) {
-                    console.log(`[Fee Collection] Skipping session ${session.id} (no fees)`);
-                    continue;
-                }
-
-                console.log(`[Fee Collection] Collecting ${feeAmount} from session ${session.id}...`);
-
-                // Regenerate the wallet to get the private key
+                logger.info(`[Fee Collection] Collecting ${feeAmount} from ${session.id}...`);
                 const localWallet = walletService.generateLocalAddress(cryptocurrency, session.addressIndex);
 
-                // Send the fee to the collection address
                 const result = await addressService.sendTransaction(
                     cryptocurrency,
                     localWallet.privateKey,
@@ -367,14 +296,12 @@ class ForwardingService {
                 );
 
                 if (result.success) {
-                    console.log(`[Fee Collection] ✓ Collected ${feeAmount} - TX: ${result.txHash}`);
+                    logger.info(`[Fee Collection] ✓ SUCCESS - TX: ${result.txHash}`);
                     totalFeesCollected += feeAmount;
                     totalGasPaid += result.fees || 0;
 
-                    // Mark fees as collected
                     paymentSessionManager.updateSession(session.id, {
                         metadata: {
-                            ...session.metadata,
                             feesCollected: true,
                             feeCollectionTxHash: result.txHash,
                             feeCollectedAt: new Date().toISOString(),
@@ -382,29 +309,15 @@ class ForwardingService {
                         }
                     });
 
-                    results.push({
-                        sessionId: session.id,
-                        success: true,
-                        amount: feeAmount,
-                        txHash: result.txHash,
-                        gasPaid: result.fees || 0
-                    });
+                    results.push({ sessionId: session.id, success: true, amount: feeAmount, txHash: result.txHash });
                 } else {
-                    console.error(`[Fee Collection] ✗ Failed for session ${session.id}: ${result.error}`);
-                    results.push({
-                        sessionId: session.id,
-                        success: false,
-                        error: result.error
-                    });
+                    logger.error(`[Fee Collection] ✗ FAILED for ${session.id}: ${result.error}`);
+                    results.push({ sessionId: session.id, success: false, error: result.error });
                 }
             }
 
             const successCount = results.filter(r => r.success).length;
-
-            console.log(`[Fee Collection] ✓ Complete!`);
-            console.log(`[Fee Collection] Total collected: ${totalFeesCollected} ${cryptocurrency.toUpperCase()}`);
-            console.log(`[Fee Collection] Total gas paid: ${totalGasPaid} ${cryptocurrency.toUpperCase()} (${successCount} transactions)`);
-            console.log(`[Fee Collection] Success rate: ${successCount}/${completedSessions.length}`);
+            logger.info(`[Fee Collection] ✓ Complete - Collected: ${totalFeesCollected}, Gas: ${totalGasPaid}`);
 
             return {
                 success: true,
@@ -413,20 +326,15 @@ class ForwardingService {
                 sessionsProcessed: completedSessions.length,
                 successfulTransactions: successCount,
                 collectionMethod: 'sequential',
-                results,
-                message: `Collected ${totalFeesCollected} ${cryptocurrency.toUpperCase()} from ${successCount} addresses with total gas of ${totalGasPaid}`
+                results
             };
 
         } catch (error) {
-            console.error('[Fee Collection] Error:', error.message);
-            return {
-                success: false,
-                error: error.message
-            };
+            logger.error(`[Fee Collection] Error: ${error.message}`);
+            return { success: false, error: error.message };
         }
     }
 }
 
-// Export singleton
 export const forwardingService = new ForwardingService();
 export default forwardingService;

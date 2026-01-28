@@ -1,14 +1,15 @@
 import express from 'express';
 import cors from 'cors';
+import { rateLimit } from 'express-rate-limit';
 import config from './config/env.js';
+import logger from './utils/logger.js';
 
-// Import routes (will be created later)
+// Import routes
 import addressRoutes from './routes/address.routes.js';
 import sessionRoutes from './routes/session.routes.js';
 import webhookRoutes from './routes/webhook.routes.js';
 import feeRoutes from './routes/fee.routes.js';
 import './services/forwarding.service.js'; // Initialize auto-forwarding
-
 
 // Import confirmation service for event handling
 import { confirmationService } from './services/confirmation.service.js';
@@ -22,10 +23,8 @@ const app = express();
 function registerPaymentEventHandlers() {
     // Handler for when payment is detected (transaction in mempool)
     confirmationService.on('onPaymentDetected', async (data) => {
-        console.log(`[Event] Payment detected for session ${data.sessionId}`);
-        console.log(`  TX: ${data.txHash}, Amount: ${data.amount} ${data.cryptocurrency}`);
+        logger.info(`[Event] Payment detected for session ${data.sessionId} - TX: ${data.txHash}, Amount: ${data.amount} ${data.cryptocurrency}`);
 
-        // Optionally notify main backend about detected payment
         await notifyMainBackend({
             ...data,
             paymentStatus: 'detected'
@@ -34,30 +33,25 @@ function registerPaymentEventHandlers() {
 
     // Handler for confirmation updates
     confirmationService.on('onConfirmationUpdate', async (data) => {
-        console.log(`[Event] Confirmation update for session ${data.sessionId}`);
-        console.log(`  Confirmations: ${data.confirmations}/${data.requiredConfirmations}`);
+        logger.debug(`[Event] Confirmation update for session ${data.sessionId} - Confirmations: ${data.confirmations}/${data.requiredConfirmations}`);
     });
 
     // Handler for when payment is confirmed (reached required confirmations)
     confirmationService.on('onPaymentConfirmed', async (data) => {
-        console.log(`[Event] Payment confirmed for session ${data.sessionId}`);
-        console.log(`  Amount: ${data.amount} ${data.cryptocurrency}`);
+        logger.info(`[Event] Payment confirmed for session ${data.sessionId} - Amount: ${data.amount} ${data.cryptocurrency}`);
     });
 
     // Handler for when payment is fully completed
     confirmationService.on('onPaymentCompleted', async (data) => {
-        console.log(`[Event] Payment completed for session ${data.sessionId}`);
-        console.log(`  User: ${data.userId}, Amount: ${data.amount} ${data.cryptocurrency}`);
-        console.log(`  TX: ${data.txHash}`);
+        logger.info(`[Event] Payment completed for session ${data.sessionId} - User: ${data.userId}, Amount: ${data.amount} ${data.cryptocurrency}, TX: ${data.txHash}`);
 
-        // Notify main backend about completed payment
         await notifyMainBackend({
             ...data,
             paymentStatus: 'completed'
         });
     });
 
-    console.log('Payment event handlers registered');
+    logger.info('Payment event handlers registered');
 }
 
 /**
@@ -65,19 +59,13 @@ function registerPaymentEventHandlers() {
  * @param {Object} data - Payment data to send
  */
 async function notifyMainBackend(data) {
-    if (!config.MAIN_BACKEND_URL) {
-        console.warn('MAIN_BACKEND_URL not configured, skipping notification');
-        return;
-    }
-
-    if (!config.MAIN_BACKEND_WEBHOOK_SECRET) {
-        console.warn('MAIN_BACKEND_WEBHOOK_SECRET not configured, skipping notification');
+    if (!config.MAIN_BACKEND_URL || !config.MAIN_BACKEND_WEBHOOK_SECRET) {
+        logger.warn('Main backend notification skipped: URL or secret missing');
         return;
     }
 
     try {
         const webhookUrl = `${config.MAIN_BACKEND_URL}/payments/webhook`;
-
         const payload = {
             secret: config.MAIN_BACKEND_WEBHOOK_SECRET,
             sessionId: data.sessionId,
@@ -89,28 +77,40 @@ async function notifyMainBackend(data) {
             paymentStatus: data.paymentStatus
         };
 
-        console.log(`Notifying main backend at ${webhookUrl}`);
-        console.log('Payload:', JSON.stringify(payload, null, 2));
+        logger.debug(`Notifying main backend at ${webhookUrl}`);
 
         const response = await fetch(webhookUrl, {
             method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
+            headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload)
         });
 
         const result = await response.json();
 
         if (response.ok && result.success) {
-            console.log('Main backend notification successful:', result.message);
+            logger.info('Main backend notification successful');
         } else {
-            console.error('Main backend notification failed:', result.error || result.message);
+            logger.error(`Main backend notification failed: ${result.error || result.message}`);
         }
     } catch (error) {
-        console.error('Error notifying main backend:', error.message);
+        logger.error(`Error notifying main backend: ${error.message}`);
     }
 }
+
+// Security: Rate Limiting
+const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    limit: 100, // Limit each IP to 100 requests per window
+    standardHeaders: 'draft-7',
+    legacyHeaders: false,
+    message: {
+        success: false,
+        error: 'Too many requests, please try again later.'
+    }
+});
+
+// Apply rate limiter to all routes
+app.use(limiter);
 
 // Middleware
 app.use(cors());
@@ -119,7 +119,7 @@ app.use(express.urlencoded({ extended: true }));
 
 // Request logging middleware
 app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.method} ${req.path}`);
+    logger.debug(`${req.method} ${req.path} - IP: ${req.ip}`);
     next();
 });
 
@@ -140,8 +140,7 @@ app.use('/fees', feeRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
-    console.error('Error:', err.message);
-    console.error(err.stack);
+    logger.error(`Server Error: ${err.message}`, { stack: err.stack });
 
     res.status(err.status || 500).json({
         success: false,
@@ -158,32 +157,18 @@ app.use((req, res) => {
     });
 });
 
-// Start server only if not in test mode
-if (process.env.NODE_ENV !== 'test') {
-    // Register payment event handlers
+// Start server
+if (config.NODE_ENV !== 'test') {
     registerPaymentEventHandlers();
 
     app.listen(config.PORT, () => {
-        console.log(`Payment Gateway server running on port ${config.PORT}`);
-        console.log(`Environment: ${config.NODE_ENV}`);
-        console.log(`Webhook URL: ${config.WEBHOOK_BASE_URL}`);
-        console.log(`Main Backend URL: ${config.MAIN_BACKEND_URL}`);
+        logger.info(`🚀 Payment Gateway server running on port ${config.PORT}`);
+        logger.info(`Environment: ${config.NODE_ENV}`);
+        logger.info(`Webhook URL: ${config.WEBHOOK_BASE_URL}`);
 
-        if (!config.BLOCKCYPHER_API_TOKEN) {
-            console.warn('WARNING: BLOCKCYPHER_API_TOKEN is not set!');
-        }
-        if (!config.BTC_MAIN_ADDRESS) {
-            console.warn('WARNING: BTC_MAIN_ADDRESS is not set!');
-        }
-        if (!config.ETH_MAIN_ADDRESS) {
-            console.warn('WARNING: ETH_MAIN_ADDRESS is not set!');
-        }
-        if (!config.MAIN_BACKEND_URL) {
-            console.warn('WARNING: MAIN_BACKEND_URL is not set!');
-        }
-        if (!config.MAIN_BACKEND_WEBHOOK_SECRET) {
-            console.warn('WARNING: MAIN_BACKEND_WEBHOOK_SECRET is not set!');
-        }
+        if (!config.BLOCKCYPHER_API_TOKEN) logger.warn('BLOCKCYPHER_API_TOKEN is not set!');
+        if (!config.BTC_MAIN_ADDRESS) logger.warn('BTC_MAIN_ADDRESS is not set!');
+        if (!config.ETH_MAIN_ADDRESS) logger.warn('ETH_MAIN_ADDRESS is not set!');
     });
 }
 
