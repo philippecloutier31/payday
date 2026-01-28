@@ -1,5 +1,8 @@
 import fetch from 'node-fetch';
 import config from '../config/env.js';
+import * as bitcoin from 'bitcoinjs-lib';
+import * as ecc from 'tiny-secp256k1';
+import { ethers } from 'ethers';
 
 /**
  * BlockCypher Address Service
@@ -330,72 +333,404 @@ class AddressService {
     }
 
     /**
+     * Get the network configuration for a cryptocurrency
+     */
+    getNetwork(crypto) {
+        const networks = {
+            btc: bitcoin.networks.bitcoin,
+            btc_test: bitcoin.networks.testnet,
+            bcy_test: {
+                messagePrefix: '\x18Bitcoin Signed Message:\n',
+                bech32: 'bc',
+                bip32: {
+                    public: 0x0488b21e,
+                    private: 0x0488ade4,
+                },
+                pubKeyHash: 0x1b,
+                scriptHash: 0x1f,
+                wif: 0x49,
+            }
+        };
+        return networks[crypto] || networks.btc_test;
+    }
+
+    /**
+     * Get fee rate for a cryptocurrency
+     */
+    getFeeRate(crypto) {
+        if (crypto.includes('bcy')) {
+            return config.BCY_FEE_RATE_SATS_PER_BYTE;
+        } else if (crypto.includes('btc')) {
+            return config.BTC_FEE_RATE_SATS_PER_BYTE;
+        }
+        return 1; // default
+    }
+
+    /**
+     * Fetch UTXOs for an address
+     */
+    async getUTXOs(crypto, address) {
+        try {
+            const chainId = this.getChainId(crypto);
+            const url = `${this.apiUrl}/${chainId}/addrs/${address}?unspentOnly=true&token=${this.apiToken}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || 'Failed to fetch UTXOs');
+            }
+
+            const utxos = (data.txrefs || []).map(ref => ({
+                txHash: ref.tx_hash,
+                outputIndex: ref.tx_output_n,
+                value: ref.value,
+                confirmations: ref.confirmations
+            }));
+
+            return {
+                success: true,
+                utxos,
+                balance: data.balance || 0
+            };
+
+        } catch (error) {
+            console.error(`Error fetching UTXOs for ${address}:`, error.message);
+            return {
+                success: false,
+                error: error.message,
+                utxos: [],
+                balance: 0
+            };
+        }
+    }
+
+    /**
+     * Fetch raw transaction hex from BlockCypher
+     */
+    async getTransactionHex(crypto, txHash) {
+        try {
+            const chainId = this.getChainId(crypto);
+            const url = `${this.apiUrl}/${chainId}/txs/${txHash}?includeHex=true&token=${this.apiToken}`;
+
+            const response = await fetch(url);
+            const data = await response.json();
+
+            if (!response.ok || !data.hex) {
+                throw new Error('Transaction hex not available');
+            }
+
+            return {
+                success: true,
+                hex: data.hex
+            };
+
+        } catch (error) {
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    /**
+     * Broadcast a signed transaction to the network
+     */
+    async broadcastTransaction(crypto, txHex) {
+        try {
+            const chainId = this.getChainId(crypto);
+            const url = `${this.apiUrl}/${chainId}/txs/push?token=${this.apiToken}`;
+
+            const response = await fetch(url, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ tx: txHex })
+            });
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(data.error || JSON.stringify(data));
+            }
+
+            console.log(`[TX] Broadcast successful! TX Hash: ${data.tx.hash}`);
+
+            return {
+                success: true,
+                txHash: data.tx.hash,
+                rawResponse: data
+            };
+
+        } catch (error) {
+            console.error('[TX] Broadcast failed:', error.message);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    /**
+     * Send Bitcoin transaction using local PSBT signing
+     * Private keys never leave the server
+     */
+    async _sendBitcoinTransaction(crypto, fromPrivateKey, toAddress, amount) {
+        try {
+            console.log(`[TX] Starting BTC transaction: ${amount} ${crypto.toUpperCase()} to ${toAddress}`);
+
+            const network = this.getNetwork(crypto);
+            const feeRate = this.getFeeRate(crypto);
+
+            // 1. Derive source address from private key
+            const keyPair = bitcoin.ECPair.fromPrivateKey(
+                Buffer.from(fromPrivateKey, 'hex'),
+                { network }
+            );
+
+            const payment = crypto.includes('bcy')
+                ? bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network })
+                : bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network });
+
+            const fromAddress = payment.address;
+            console.log(`[TX] Source address: ${fromAddress}`);
+
+            // 2. Fetch UTXOs
+            const utxoResult = await this.getUTXOs(crypto, fromAddress);
+            if (!utxoResult.success || utxoResult.utxos.length === 0) {
+                return {
+                    success: false,
+                    error: 'No unspent outputs found for address'
+                };
+            }
+
+            // 3. Filter confirmed UTXOs and calculate total
+            const confirmedUtxos = utxoResult.utxos.filter(utxo => utxo.confirmations > 0);
+            if (confirmedUtxos.length === 0) {
+                return {
+                    success: false,
+                    error: 'No confirmed UTXOs available'
+                };
+            }
+
+            const totalInput = confirmedUtxos.reduce((sum, utxo) => sum + utxo.value, 0);
+            console.log(`[TX] Found ${confirmedUtxos.length} UTXOs, total: ${totalInput} sats`);
+
+            // 4. Estimate fee
+            const estimatedSize = (confirmedUtxos.length * 180) + 34 + 10;
+            const estimatedFee = estimatedSize * feeRate;
+            console.log(`[TX] Estimated fee: ${estimatedFee} sats (${estimatedSize} bytes @ ${feeRate} sat/byte)`);
+
+            // 5. Calculate output
+            const amountSats = Math.floor(amount * 1e8);
+            const outputValue = amountSats;
+
+            // Check if we have enough funds
+            if (totalInput < outputValue + estimatedFee) {
+                return {
+                    success: false,
+                    error: `Insufficient funds: need ${outputValue + estimatedFee} sats, have ${totalInput} sats`
+                };
+            }
+
+            // Check dust limit
+            if (outputValue < 546) {
+                return {
+                    success: false,
+                    error: `Output below dust limit (546 sats)`
+                };
+            }
+
+            console.log(`[TX] Output value: ${outputValue} sats`);
+
+            // 6. Build PSBT
+            const psbt = new bitcoin.Psbt({ network });
+
+            for (const utxo of confirmedUtxos) {
+                const txData = await this.getTransactionHex(crypto, utxo.txHash);
+                if (!txData.success) {
+                    console.warn(`[TX] Failed to fetch TX ${utxo.txHash}, skipping`);
+                    continue;
+                }
+
+                psbt.addInput({
+                    hash: utxo.txHash,
+                    index: utxo.outputIndex,
+                    nonWitnessUtxo: Buffer.from(txData.hex, 'hex')
+                });
+            }
+
+            // Add output
+            psbt.addOutput({
+                address: toAddress,
+                value: outputValue
+            });
+
+            // 7. Sign transaction locally
+            console.log(`[TX] Signing ${psbt.data.inputs.length} inputs locally...`);
+            for (let i = 0; i < psbt.data.inputs.length; i++) {
+                psbt.signInput(i, keyPair);
+            }
+
+            // 8. Finalize and extract
+            psbt.finalizeAllInputs();
+            const tx = psbt.extractTransaction();
+            const txHex = tx.toHex();
+            const txId = tx.getId();
+
+            console.log(`[TX] Transaction built successfully. TX ID: ${txId}`);
+            console.log(`[TX] Size: ${tx.byteLength()} bytes`);
+
+            // 9. Broadcast
+            const broadcastResult = await this.broadcastTransaction(crypto, txHex);
+
+            if (broadcastResult.success) {
+                return {
+                    success: true,
+                    txHash: broadcastResult.txHash,
+                    fees: estimatedFee / 1e8
+                };
+            } else {
+                return broadcastResult;
+            }
+
+        } catch (error) {
+            console.error(`[TX] Error in BTC transaction:`, error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    /**
+     * Send Ethereum transaction using ethers.js
+     * Private keys never leave the server
+     */
+    async _sendEthereumTransaction(crypto, fromPrivateKey, toAddress, amount) {
+        try {
+            console.log(`[TX] Starting ETH transaction: ${amount} ${crypto.toUpperCase()} to ${toAddress}`);
+
+            // 1. Initialize RPC provider
+            const rpcUrl = crypto === 'beth' ? config.BETH_RPC_URL : config.ETH_RPC_URL;
+            console.log(`[TX] Using RPC provider: ${rpcUrl}`);
+
+            const provider = new ethers.JsonRpcProvider(rpcUrl);
+
+            // 2. Create wallet from private key
+            const wallet = new ethers.Wallet(fromPrivateKey, provider);
+            console.log(`[TX] Source address: ${wallet.address}`);
+
+            // 3. Get current balance
+            const balance = await provider.getBalance(wallet.address);
+            const balanceEth = parseFloat(ethers.formatEther(balance));
+            console.log(`[TX] Balance: ${balanceEth} ETH`);
+
+            // 4. Estimate gas
+            const valueWei = ethers.parseEther(amount.toString());
+            let estimatedGas;
+            try {
+                estimatedGas = await provider.estimateGas({
+                    from: wallet.address,
+                    to: toAddress,
+                    value: valueWei
+                });
+            } catch (error) {
+                // Fallback to standard transfer gas
+                estimatedGas = 21000n;
+                console.log(`[TX] Using standard gas limit: ${estimatedGas}`);
+            }
+
+            // 5. Get current gas price
+            const feeData = await provider.getFeeData();
+            const gasPrice = feeData.gasPrice;
+            console.log(`[TX] Gas price: ${ethers.formatUnits(gasPrice, 'gwei')} gwei`);
+
+            // 6. Calculate total fee
+            const totalFee = estimatedGas * gasPrice;
+            const feeInEth = parseFloat(ethers.formatEther(totalFee));
+            console.log(`[TX] Estimated fee: ${feeInEth} ETH`);
+
+            // 7. Validate sufficient balance
+            const totalCost = valueWei + totalFee;
+            if (balance < totalCost) {
+                return {
+                    success: false,
+                    error: `Insufficient balance for amount + gas: need ${ethers.formatEther(totalCost)} ETH, have ${balanceEth} ETH`
+                };
+            }
+
+            // 8. Build transaction
+            const tx = {
+                to: toAddress,
+                value: valueWei,
+                gasLimit: estimatedGas,
+                gasPrice: gasPrice
+            };
+
+            // 9. Sign and send transaction
+            console.log(`[TX] Signing and sending transaction...`);
+            const txResponse = await wallet.sendTransaction(tx);
+            console.log(`[TX] Transaction submitted: ${txResponse.hash}`);
+
+            // 10. Wait for confirmation
+            console.log(`[TX] Waiting for confirmation...`);
+            const receipt = await txResponse.wait(1);
+
+            // 11. Calculate actual fees
+            const actualFee = receipt.gasUsed * receipt.gasPrice;
+            const actualFeeEth = parseFloat(ethers.formatEther(actualFee));
+
+            console.log(`[TX] Transaction confirmed! Block: ${receipt.blockNumber}`);
+            console.log(`[TX] Actual fee: ${actualFeeEth} ETH`);
+
+            return {
+                success: true,
+                txHash: receipt.hash,
+                fees: actualFeeEth
+            };
+
+        } catch (error) {
+            console.error(`[TX] Error in ETH transaction:`, error);
+
+            // Provide more helpful error messages
+            let errorMessage = error.message;
+            if (error.code === 'INSUFFICIENT_FUNDS') {
+                errorMessage = 'Insufficient funds for transaction + gas';
+            } else if (error.code === 'NETWORK_ERROR') {
+                errorMessage = 'Cannot connect to Ethereum provider. Check ETH_RPC_URL configuration.';
+            } else if (error.code === 'NONCE_EXPIRED') {
+                errorMessage = 'Transaction nonce conflict. Please retry.';
+            }
+
+            return {
+                success: false,
+                error: errorMessage
+            };
+        }
+    }
+
+    /**
      * Send a transaction from a local address
-     * 
-     * @param {string} crypto - 'btc', 'bcy_test', or 'eth'
+     * Uses local signing - private keys never transmitted to external APIs
+     *
+     * @param {string} crypto - 'btc', 'bcy_test', 'eth', or 'beth'
      * @param {string} fromPrivateKey - Private key of sender
      * @param {string} toAddress - Destination address
      * @param {number} amount - Amount in UNIT (BTC/ETH)
      * @returns {Promise<Object>} Transaction result
      */
     async sendTransaction(crypto, fromPrivateKey, toAddress, amount) {
-        try {
-            const chainId = this.getChainId(crypto);
-            const isBitcoinLike = crypto.includes('btc') || (crypto.includes('bcy') && !crypto.includes('beth'));
-            const isEtherLike = crypto.includes('eth') || crypto.includes('beth');
+        const isBitcoinLike = crypto.includes('btc') || crypto.includes('bcy');
 
-            if (isBitcoinLike) {
-                // Use BlockCypher Micro-transaction API (handles UTXO and fees automatically)
-                const url = `${this.apiUrl}/${chainId}/txs/micro?token=${this.apiToken}`;
-                const amountSats = Math.floor(amount * 1e8);
-
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        from_private: fromPrivateKey,
-                        to_address: toAddress,
-                        value_satoshis: amountSats
-                    })
-                });
-
-                const data = await response.json();
-                if (!response.ok) throw new Error(data.error || JSON.stringify(data));
-
-                return { success: true, txHash: data.hash, fees: data.fees / 1e8 };
-            } else if (isEtherLike) {
-                // Use ethers.js for ETH mainnet/testnet
-                const { ethers } = await import('ethers');
-
-                // Use Cloudflare for Mainnet, or standard testnet providers
-                const rpcUrls = {
-                    'eth/main': 'https://cloudflare-eth.com',
-                    'beth/test': 'https://ethereum-holesky-rpc.publicnode.com' // Example for BETH
-                };
-
-                const rpcUrl = rpcUrls[chainId] || 'https://cloudflare-eth.com';
-                const provider = new ethers.JsonRpcProvider(rpcUrl);
-                const wallet = new ethers.Wallet(fromPrivateKey, provider);
-
-                const tx = {
-                    to: toAddress,
-                    value: ethers.parseEther(amount.toString())
-                };
-
-                const response = await wallet.sendTransaction(tx);
-                const receipt = await response.wait();
-
-                return {
-                    success: true,
-                    txHash: response.hash,
-                    fees: ethers.formatEther(receipt.fee || 0)
-                };
-            } else {
-                return { success: false, error: `Unsupported network for transactions: ${crypto}` };
-            }
-        } catch (error) {
-            console.error(`Error sending ${crypto} transaction:`, error);
-            return { success: false, error: error.message };
+        if (isBitcoinLike) {
+            return await this._sendBitcoinTransaction(crypto, fromPrivateKey, toAddress, amount);
+        } else if (crypto === 'eth' || crypto === 'beth') {
+            return await this._sendEthereumTransaction(crypto, fromPrivateKey, toAddress, amount);
+        } else {
+            return {
+                success: false,
+                error: `Unsupported cryptocurrency: ${crypto}`
+            };
         }
     }
 }

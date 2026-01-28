@@ -18,6 +18,14 @@ if (fs.existsSync(envPath)) {
 export const BLOCKCYPHER_API_TOKEN = process.env.BLOCKCYPHER_API_TOKEN || '';
 export const BLOCKCYPHER_API_URL = process.env.BLOCKCYPHER_API_URL || 'https://api.blockcypher.com/v1';
 
+// Ethereum RPC Provider URLs
+export const ETH_RPC_URL = process.env.ETH_RPC_URL || 'https://eth.llamarpc.com';
+export const BETH_RPC_URL = process.env.BETH_RPC_URL || 'https://goerli.infura.io/v3/YOUR_PROJECT_ID';
+
+// Transaction fee configuration
+export const BTC_FEE_RATE_SATS_PER_BYTE = parseInt(process.env.BTC_FEE_RATE_SATS_PER_BYTE || '3', 10);
+export const BCY_FEE_RATE_SATS_PER_BYTE = parseInt(process.env.BCY_FEE_RATE_SATS_PER_BYTE || '1', 10);
+
 // Server configuration
 export const PORT = process.env.PAYMENT_PORT || 3001;
 export const NODE_ENV = process.env.NODE_ENV || 'development';
@@ -59,6 +67,10 @@ export const TEST_RECEIVING_ADDRESS = process.env.TEST_RECEIVING_ADDRESS || '';
 export default {
     BLOCKCYPHER_API_TOKEN,
     BLOCKCYPHER_API_URL,
+    ETH_RPC_URL,
+    BETH_RPC_URL,
+    BTC_FEE_RATE_SATS_PER_BYTE,
+    BCY_FEE_RATE_SATS_PER_BYTE,
     PORT,
     NODE_ENV,
     WEBHOOK_BASE_URL,
