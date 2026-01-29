@@ -4,7 +4,7 @@ import * as ecc from 'tiny-secp256k1';
 import fetch from 'node-fetch';
 import config from '../config/env.js';
 
-const bip32 = BIP32Factory(ecc);
+const bip32 = BIP32Factory(ecc.default || ecc);
 
 /**
  * Batch Transaction Service

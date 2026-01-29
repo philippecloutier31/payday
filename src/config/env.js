@@ -19,9 +19,10 @@ export const BLOCKCYPHER_API_TOKEN = process.env.BLOCKCYPHER_API_TOKEN || '';
 export const BLOCKCYPHER_API_URL = process.env.BLOCKCYPHER_API_URL || 'https://api.blockcypher.com/v1';
 
 // Ethereum RPC Provider URLs
-// Ethereum RPC Provider URLs
-export const ETH_RPC_URL = process.env.ETH_RPC_URL || 'https://cloudflare-eth.com';
-export const BETH_RPC_URL = process.env.BETH_RPC_URL || 'https://ethereum-holesky-rpc.publicnode.com';
+// Using multiple public RPCs for reliability
+export const ETH_RPC_URL = process.env.ETH_RPC_URL || 'https://eth.llamarpc.com';
+export const ETH_RPC_URL_BACKUP = process.env.ETH_RPC_URL_BACKUP || 'https://rpc.ankr.com/eth';
+export const BETH_RPC_URL = process.env.BETH_RPC_URL || 'https://holesky.drpc.org';
 
 // Transaction fee configuration
 // Use 1-2 sat/vbyte for normal priority, 3+ for urgent
@@ -41,6 +42,8 @@ export const AUTO_FORWARD_ENABLED = process.env.AUTO_FORWARD_ENABLED === 'true';
 export const FORWARDING_PERCENTAGE = parseFloat(process.env.FORWARDING_PERCENTAGE || '0.975');
 export const MINIMUM_FEE_THRESHOLD_USD = parseFloat(process.env.MINIMUM_FEE_THRESHOLD_USD || '50');
 export const FEE_COLLECTION_ADDRESS = process.env.FEE_COLLECTION_ADDRESS || '';
+export const FEE_COLLECTION_ADDRESS_BTC = process.env.FEE_COLLECTION_ADDRESS_BTC || process.env.FEE_COLLECTION_ADDRESS || '';
+export const FEE_COLLECTION_ADDRESS_ETH = process.env.FEE_COLLECTION_ADDRESS_ETH || process.env.FEE_COLLECTION_ADDRESS || '';
 
 // Main wallet addresses (where funds will be forwarded)
 export const BTC_MAIN_ADDRESS = process.env.BTC_MAIN_ADDRESS || '';
@@ -96,5 +99,7 @@ export default {
     AUTO_FORWARD_ENABLED,
     FORWARDING_PERCENTAGE,
     MINIMUM_FEE_THRESHOLD_USD,
-    FEE_COLLECTION_ADDRESS
+    FEE_COLLECTION_ADDRESS,
+    FEE_COLLECTION_ADDRESS_BTC,
+    FEE_COLLECTION_ADDRESS_ETH
 };

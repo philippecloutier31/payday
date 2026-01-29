@@ -178,11 +178,20 @@ class ForwardingService {
     async collectAllFees(cryptocurrency) {
         logger.info(`[Fee Collection] Starting collection for ${cryptocurrency.toUpperCase()}`);
 
-        const feeCollectionAddress = config.FEE_COLLECTION_ADDRESS;
+        // Get cryptocurrency-specific fee collection address
+        let feeCollectionAddress;
+        if (cryptocurrency.includes('btc') || cryptocurrency.includes('bcy')) {
+            feeCollectionAddress = config.FEE_COLLECTION_ADDRESS_BTC || config.FEE_COLLECTION_ADDRESS;
+        } else {
+            feeCollectionAddress = config.FEE_COLLECTION_ADDRESS_ETH || config.FEE_COLLECTION_ADDRESS;
+        }
+
         if (!feeCollectionAddress) {
             logger.error('[Fee Collection] FEE_COLLECTION_ADDRESS not configured in .env');
             return { success: false, error: 'FEE_COLLECTION_ADDRESS not configured' };
         }
+
+        logger.info(`[Fee Collection] Target address: ${feeCollectionAddress}`);
 
         // Route to appropriate collection method
         const isBitcoinLike = cryptocurrency.includes('btc') || cryptocurrency.includes('bcy');

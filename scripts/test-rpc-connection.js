@@ -1,48 +1,82 @@
 import { ethers } from 'ethers';
-import dotenv from 'dotenv';
-import path from 'path';
-import { fileURLToPath } from 'url';
 
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, '../.env') });
+/**
+ * Test ETH RPC connection
+ */
 
-const ETH_RPC_URL = process.env.ETH_RPC_URL || 'https://cloudflare-eth.com';
-const BETH_RPC_URL = process.env.BETH_RPC_URL || 'https://ethereum-holesky-rpc.publicnode.com';
+// Test with multiple RPC endpoints
+const rpcEndpoints = {
+    eth: [
+        'https://eth.llamarpc.com',
+        'https://rpc.ankr.com/eth',
+        'https://eth.public-rpc.com',
+        'https://cloudflare-eth.com'
+    ],
+    beth: [
+        'https://holesky.eth.public-rpc.com',
+        'https://holesky.drpc.org'
+    ]
+};
 
-async function testConnection(name, url, chainId) {
-    console.log(`\nTesting ${name} Connection...`);
-    console.log(`URL: ${url}`);
+async function testEthRpc() {
+    console.log('Testing ETH RPC connections...\n');
 
-    try {
-        // This mirrors the fix we applied in address.service.js
-        const provider = new ethers.JsonRpcProvider(url, null, {
-            staticNetwork: ethers.Network.from(chainId)
-        });
+    for (const rpcUrl of rpcEndpoints.eth) {
+        console.log(`Testing: ${rpcUrl}`);
+        try {
+            const provider = new ethers.JsonRpcProvider(rpcUrl, null, {
+                staticNetwork: ethers.Network.from(1)
+            });
 
-        const network = await provider.getNetwork();
-        const blockNumber = await provider.getBlockNumber();
-        const feeData = await provider.getFeeData();
+            const blockNumber = await provider.getBlockNumber();
+            const block = await provider.getBlock(blockNumber);
 
-        console.log(`✅ SUCCESS! Connected to chain ID: ${network.chainId}`);
-        console.log(`   Block Height: ${blockNumber}`);
-        console.log(`   Gas Price: ${ethers.formatUnits(feeData.gasPrice, 'gwei')} gwei`);
-        return true;
-    } catch (error) {
-        console.log(`❌ FAILED: ${error.message}`);
-        return false;
+            console.log(`  ✓ Connected! Block: ${blockNumber}`);
+            console.log(`  ✓ Timestamp: ${new Date(block.timestamp * 1000).toISOString()}`);
+            console.log(`  ✓ Network: ${(await provider.getNetwork()).name}`);
+            console.log(`\n✅ ETH RPC working: ${rpcUrl}\n`);
+            return rpcUrl;
+        } catch (error) {
+            console.log(`  ✗ Failed: ${error.message?.substring(0, 50)}...`);
+        }
     }
+    console.log('❌ All ETH RPC endpoints failed');
+    return null;
 }
 
-async function run() {
-    console.log('--- RPC Connectivity Check ---');
+async function testbethRpc() {
+    console.log('\nTesting BETH (Holesky) RPC connections...\n');
 
-    // Test Mainnet (Chain ID 1)
-    await testConnection('Ethereum Mainnet', ETH_RPC_URL, 1);
+    for (const rpcUrl of rpcEndpoints.beth) {
+        console.log(`Testing: ${rpcUrl}`);
+        try {
+            const provider = new ethers.JsonRpcProvider(rpcUrl, null, {
+                staticNetwork: ethers.Network.from(17000)
+            });
 
-    // Test BETH/Holesky (Chain ID 17000)
-    await testConnection('BETH (Holesky)', BETH_RPC_URL, 17000); // 17000 is Holesky
+            const blockNumber = await provider.getBlockNumber();
+            const block = await provider.getBlock(blockNumber);
 
-    console.log('\n------------------------------');
+            console.log(`  ✓ Connected! Block: ${blockNumber}`);
+            console.log(`  ✓ Timestamp: ${new Date(block.timestamp * 1000).toISOString()}`);
+            console.log(`  ✓ Network: ${(await provider.getNetwork()).name}`);
+            console.log(`\n✅ BETH RPC working: ${rpcUrl}\n`);
+            return rpcUrl;
+        } catch (error) {
+            console.log(`  ✗ Failed: ${error.message?.substring(0, 50)}...`);
+        }
+    }
+    console.log('❌ All BETH RPC endpoints failed');
+    return null;
 }
 
-run();
+const ethWorking = await testEthRpc();
+const bethWorking = await testbethRpc();
+
+console.log('\n========== SUMMARY ==========');
+if (ethWorking) {
+    console.log(`ETH:  Use ETH_RPC_URL=${ethWorking}`);
+}
+if (bethWorking) {
+    console.log(`BETH: Use BETH_RPC_URL=${bethWorking}`);
+}

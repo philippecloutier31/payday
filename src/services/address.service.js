@@ -787,8 +787,7 @@ class AddressService {
 
             // 1. Initialize RPC provider with Fallback
             const rpcUrl = crypto === 'beth' ? config.BETH_RPC_URL : config.ETH_RPC_URL;
-            // Backup RPC for Mainnet (LlamaNodes is a reliable public alternative)
-            const backupRpcUrl = 'https://eth.llamarpc.com';
+            const backupRpcUrl = crypto === 'beth' ? null : config.ETH_RPC_URL_BACKUP;
 
             console.log(`[TX] Using RPC provider: ${rpcUrl}`);
 
@@ -801,8 +800,8 @@ class AddressService {
                 // Test connection
                 await provider.getBlockNumber();
             } catch (e) {
-                console.warn(`[TX] Primary RPC failed, switching to backup: ${backupRpcUrl}`);
-                if (crypto === 'eth') {
+                if (backupRpcUrl) {
+                    console.warn(`[TX] Primary RPC failed, switching to backup: ${backupRpcUrl}`);
                     provider = new ethers.JsonRpcProvider(backupRpcUrl, null, {
                         staticNetwork: ethers.Network.from(1)
                     });

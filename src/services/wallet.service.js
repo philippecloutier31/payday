@@ -5,7 +5,7 @@ import * as bitcoin from 'bitcoinjs-lib';
 import { ethers } from 'ethers';
 import config from '../config/env.js';
 
-const bip32 = BIP32Factory(ecc);
+const bip32 = BIP32Factory(ecc.default || ecc);
 
 const BCY_NETWORK = {
     messagePrefix: '\x18Bitcoin Signed Message:\n',
