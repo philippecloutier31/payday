@@ -3,6 +3,7 @@ import cors from 'cors';
 import { rateLimit } from 'express-rate-limit';
 import config from './config/env.js';
 import logger from './utils/logger.js';
+import { jobService } from './services/job.service.js';
 
 // Import routes
 import addressRoutes from './routes/address.routes.js';
@@ -163,6 +164,7 @@ app.use((req, res) => {
 // Start server
 if (config.NODE_ENV !== 'test') {
     registerPaymentEventHandlers();
+    jobService.startParams(); // Start polling fallback
 
     app.listen(config.PORT, () => {
         logger.info(`🚀 Payment Gateway server running on port ${config.PORT}`);

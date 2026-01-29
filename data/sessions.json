@@ -1,114 +1,5 @@
 [
   {
-    "id": "99c0d15a-0dd2-4135-9cc2-0bff075b0b68",
-    "userId": "68dbc4a9952ed094a434797c",
-    "cryptocurrency": "beth",
-    "paymentAddress": "b26b59fb4a69340af641fa09c0f4bbd855e0d149",
-    "forwardingAddress": "f3e6964752f7351c5078aedf3f3e9f71234bc635",
-    "forwardingId": null,
-    "webhookId": "f713da98-027c-4cee-8497-c93daf27d7a3",
-    "expectedAmount": 0.001,
-    "receivedAmount": null,
-    "status": "completed",
-    "confirmations": 1,
-    "requiredConfirmations": 1,
-    "txHash": "a1fd6672b3224efc8035adb5a764c3023f8a27d4c623b05c925f429a94c1da7c",
-    "blockHeight": 6545644,
-    "addressIndex": 1,
-    "metadata": {
-      "userEmail": "admin@example.com",
-      "userName": "Admin",
-      "amountUSD": 3,
-      "addressSource": "blockcypher_api"
-    },
-    "createdAt": "2026-01-28T15:59:28.956Z",
-    "updatedAt": "2026-01-28T15:59:45.742Z",
-    "expiresAt": "2026-01-29T01:59:28.956Z",
-    "detectedAt": "2026-01-28T15:59:44.927Z",
-    "confirmedAt": "2026-01-28T15:59:45.733Z",
-    "completedAt": "2026-01-28T15:59:45.742Z",
-    "transactionHistory": [
-      {
-        "timestamp": "2026-01-28T15:59:44.927Z",
-        "type": "payment_detected",
-        "txHash": "a1fd6672b3224efc8035adb5a764c3023f8a27d4c623b05c925f429a94c1da7c",
-        "amount": null,
-        "confirmations": 0
-      },
-      {
-        "timestamp": "2026-01-28T15:59:45.734Z",
-        "type": "confirmation_update",
-        "confirmations": 1,
-        "blockHeight": 6545644
-      },
-      {
-        "timestamp": "2026-01-28T15:59:45.742Z",
-        "type": "payment_completed",
-        "finalAmount": null,
-        "finalConfirmations": 1,
-        "txHash": "a1fd6672b3224efc8035adb5a764c3023f8a27d4c623b05c925f429a94c1da7c"
-      }
-    ],
-    "finalAmount": null,
-    "finalConfirmations": 1
-  },
-  {
-    "id": "e767cb2f-3efc-4e0e-ab3a-ace8e4291d4b",
-    "userId": "68dbc4a9952ed094a434797c",
-    "cryptocurrency": "beth",
-    "paymentAddress": "034bdfb021a96f64c0acc3057eefd37c12ec91ac",
-    "forwardingAddress": "f3e6964752f7351c5078aedf3f3e9f71234bc635",
-    "forwardingId": null,
-    "webhookId": "29f7d8e4-83d7-45fc-a94e-9afa13039593",
-    "expectedAmount": 0.001,
-    "receivedAmount": 1e-15,
-    "status": "completed",
-    "confirmations": 1,
-    "requiredConfirmations": 1,
-    "txHash": "376aac9acf869bf27a12f543e26f662574fdc7c800656a11636307b7fa3b2b16",
-    "blockHeight": 6545692,
-    "addressIndex": 4,
-    "metadata": {
-      "userEmail": "admin@example.com",
-      "userName": "Admin",
-      "amountUSD": 3,
-      "addressSource": "blockcypher_api",
-      "autoForwardFailed": true,
-      "forwardingError": "ETH provider not configured for automatic sweeping",
-      "failedAt": "2026-01-28T16:15:46.011Z"
-    },
-    "createdAt": "2026-01-28T16:15:15.432Z",
-    "updatedAt": "2026-01-28T16:15:46.011Z",
-    "expiresAt": "2026-01-29T02:15:15.432Z",
-    "detectedAt": "2026-01-28T16:15:43.284Z",
-    "confirmedAt": "2026-01-28T16:15:45.726Z",
-    "completedAt": "2026-01-28T16:15:45.742Z",
-    "transactionHistory": [
-      {
-        "timestamp": "2026-01-28T16:15:43.284Z",
-        "type": "payment_detected",
-        "txHash": "376aac9acf869bf27a12f543e26f662574fdc7c800656a11636307b7fa3b2b16",
-        "amount": 1e-15,
-        "confirmations": 0
-      },
-      {
-        "timestamp": "2026-01-28T16:15:45.726Z",
-        "type": "confirmation_update",
-        "confirmations": 1,
-        "blockHeight": 6545692
-      },
-      {
-        "timestamp": "2026-01-28T16:15:45.742Z",
-        "type": "payment_completed",
-        "finalAmount": 1e-15,
-        "finalConfirmations": 1,
-        "txHash": "376aac9acf869bf27a12f543e26f662574fdc7c800656a11636307b7fa3b2b16"
-      }
-    ],
-    "finalAmount": 1e-15,
-    "finalConfirmations": 1
-  },
-  {
     "id": "5ae4de35-69ff-41af-a932-fe236f01e7c4",
     "userId": "68dbc4a9952ed094a434797c",
     "cryptocurrency": "btc",
@@ -169,5 +60,445 @@
     "completedAt": null,
     "transactionHistory": [],
     "cancelledAt": "2026-01-28T16:18:08.487Z"
+  },
+  {
+    "id": "63530037-350b-4bd9-947f-f51e5fa01144",
+    "userId": "68ee230a6a15098aadd84738",
+    "cryptocurrency": "eth",
+    "paymentAddress": "0x4265a5F8f65A3e75D045DDb154b9233616953896",
+    "forwardingAddress": "0x7a01fba5e08590dc871890ea7ab7ae100003f3a6",
+    "forwardingId": null,
+    "webhookId": "439b754b-7a1f-496d-adb3-405dc4ac7b0a",
+    "expectedAmount": 0.0005,
+    "receivedAmount": null,
+    "status": "cancelled",
+    "confirmations": 0,
+    "requiredConfirmations": 12,
+    "txHash": null,
+    "blockHeight": null,
+    "addressIndex": 2,
+    "metadata": {
+      "userEmail": "test@example.com",
+      "userName": "Test1 user1",
+      "amountUSD": 1.50476,
+      "addressSource": "local_hd_wallet"
+    },
+    "createdAt": "2026-01-28T20:49:26.805Z",
+    "updatedAt": "2026-01-28T20:50:53.924Z",
+    "expiresAt": "2026-01-29T06:49:26.805Z",
+    "detectedAt": null,
+    "confirmedAt": null,
+    "completedAt": null,
+    "transactionHistory": [],
+    "cancelledAt": "2026-01-28T20:50:53.924Z"
+  },
+  {
+    "id": "cc941635-ac32-4115-a8bc-fc94e34ba1d2",
+    "userId": "68ee230a6a15098aadd84738",
+    "cryptocurrency": "eth",
+    "paymentAddress": "0x79C457FD5dd18533E9d3cBaaaec3dc7591d89695",
+    "forwardingAddress": "0x7a01fba5e08590dc871890ea7ab7ae100003f3a6",
+    "forwardingId": null,
+    "webhookId": "5ab109f5-ed03-4cd4-85ac-f540ce8e16e5",
+    "expectedAmount": 0.0017,
+    "receivedAmount": null,
+    "status": "cancelled",
+    "confirmations": 0,
+    "requiredConfirmations": 12,
+    "txHash": null,
+    "blockHeight": null,
+    "addressIndex": 3,
+    "metadata": {
+      "userEmail": "test@example.com",
+      "userName": "Test1 user1",
+      "amountUSD": 5.116184,
+      "addressSource": "local_hd_wallet"
+    },
+    "createdAt": "2026-01-28T20:51:26.555Z",
+    "updatedAt": "2026-01-28T21:05:08.446Z",
+    "expiresAt": "2026-01-29T06:51:26.555Z",
+    "detectedAt": null,
+    "confirmedAt": null,
+    "completedAt": null,
+    "transactionHistory": [],
+    "cancelledAt": "2026-01-28T21:05:08.446Z"
+  },
+  {
+    "id": "a16430cd-71db-4cac-8272-338248a25512",
+    "userId": "68dbc4a9952ed094a434797c",
+    "cryptocurrency": "beth",
+    "paymentAddress": "6cd06af3820db225425740af87aab7b5dafb60ce",
+    "forwardingAddress": "f3e6964752f7351c5078aedf3f3e9f71234bc635",
+    "forwardingId": null,
+    "webhookId": "0ee92eeb-f3f9-4f29-b13c-68da99bcb735",
+    "expectedAmount": 0.001,
+    "receivedAmount": null,
+    "status": "expired",
+    "confirmations": 0,
+    "requiredConfirmations": 1,
+    "txHash": null,
+    "blockHeight": null,
+    "addressIndex": 9,
+    "metadata": {
+      "userEmail": "admin@example.com",
+      "userName": "Admin",
+      "amountUSD": 3,
+      "addressSource": "blockcypher_api"
+    },
+    "createdAt": "2026-01-28T21:08:44.729Z",
+    "updatedAt": "2026-01-29T07:10:10.531Z",
+    "expiresAt": "2026-01-29T07:08:44.729Z",
+    "detectedAt": null,
+    "confirmedAt": null,
+    "completedAt": null,
+    "transactionHistory": []
+  },
+  {
+    "id": "4d9b8349-e18e-4aa1-9586-9b94bb53485c",
+    "userId": "68dbc4a9952ed094a434797c",
+    "cryptocurrency": "eth",
+    "paymentAddress": "0xe5cAdb2780Bcc4dD6e8B6c30F0e80Cff02aFa29E",
+    "forwardingAddress": "0xb5bef8606e46a16c59fc8398b82f4c6bf948b169",
+    "forwardingId": null,
+    "webhookId": "68777b84-dcc6-4f04-b7d3-5f391707c8d2",
+    "expectedAmount": 0.001663843678558712,
+    "receivedAmount": null,
+    "status": "cancelled",
+    "confirmations": 0,
+    "requiredConfirmations": 12,
+    "txHash": null,
+    "blockHeight": null,
+    "addressIndex": 4,
+    "metadata": {
+      "userEmail": "admin@example.com",
+      "userName": "Admin",
+      "amountUSD": 5,
+      "addressSource": "local_hd_wallet"
+    },
+    "createdAt": "2026-01-28T21:11:15.601Z",
+    "updatedAt": "2026-01-28T21:26:03.418Z",
+    "expiresAt": "2026-01-29T07:11:15.601Z",
+    "detectedAt": null,
+    "confirmedAt": null,
+    "completedAt": null,
+    "transactionHistory": [],
+    "cancelledAt": "2026-01-28T21:26:03.417Z"
+  },
+  {
+    "id": "dd16c2e5-4912-4fc2-a97d-376ad11849d7",
+    "userId": "68dbc4a9952ed094a434797c",
+    "cryptocurrency": "eth",
+    "paymentAddress": "0x170444cc014c8EC8e922F7FAbd83Ec85f8F3b5C7",
+    "forwardingAddress": "0xb5bef8606e46a16c59fc8398b82f4c6bf948b169",
+    "forwardingId": null,
+    "webhookId": "2a4fd049-1869-4a2f-a66f-ea3c8fb4a04a",
+    "expectedAmount": 0.0013270035265118716,
+    "receivedAmount": 0.001327,
+    "status": "confirming",
+    "confirmations": 6,
+    "requiredConfirmations": 12,
+    "txHash": null,
+    "blockHeight": 24336119,
+    "addressIndex": 5,
+    "metadata": {
+      "userEmail": "admin@example.com",
+      "userName": "Admin",
+      "amountUSD": 4,
+      "addressSource": "local_hd_wallet"
+    },
+    "createdAt": "2026-01-28T21:27:02.175Z",
+    "updatedAt": "2026-01-28T21:47:04.937Z",
+    "expiresAt": "2026-01-29T07:27:02.175Z",
+    "detectedAt": null,
+    "confirmedAt": null,
+    "completedAt": null,
+    "transactionHistory": [
+      {
+        "timestamp": "2026-01-28T21:27:53.817Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 24336028
+      },
+      {
+        "timestamp": "2026-01-28T21:28:02.416Z",
+        "type": "confirmation_update",
+        "confirmations": 2,
+        "blockHeight": 24336028
+      },
+      {
+        "timestamp": "2026-01-28T21:28:13.764Z",
+        "type": "confirmation_update",
+        "confirmations": 3,
+        "blockHeight": 24336028
+      },
+      {
+        "timestamp": "2026-01-28T21:28:29.290Z",
+        "type": "confirmation_update",
+        "confirmations": 4,
+        "blockHeight": 24336028
+      },
+      {
+        "timestamp": "2026-01-28T21:28:38.077Z",
+        "type": "confirmation_update",
+        "confirmations": 5,
+        "blockHeight": 24336028
+      },
+      {
+        "timestamp": "2026-01-28T21:28:50.991Z",
+        "type": "confirmation_update",
+        "confirmations": 6,
+        "blockHeight": 24336028
+      },
+      {
+        "timestamp": "2026-01-28T21:45:59.906Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 24336119
+      },
+      {
+        "timestamp": "2026-01-28T21:45:59.927Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 24336119
+      },
+      {
+        "timestamp": "2026-01-28T21:46:16.139Z",
+        "type": "confirmation_update",
+        "confirmations": 2,
+        "blockHeight": 24336119
+      },
+      {
+        "timestamp": "2026-01-28T21:46:16.425Z",
+        "type": "confirmation_update",
+        "confirmations": 2,
+        "blockHeight": 24336119
+      },
+      {
+        "timestamp": "2026-01-28T21:46:28.142Z",
+        "type": "confirmation_update",
+        "confirmations": 3,
+        "blockHeight": 24336119
+      },
+      {
+        "timestamp": "2026-01-28T21:46:28.158Z",
+        "type": "confirmation_update",
+        "confirmations": 3,
+        "blockHeight": 24336119
+      },
+      {
+        "timestamp": "2026-01-28T21:46:38.802Z",
+        "type": "confirmation_update",
+        "confirmations": 4,
+        "blockHeight": 24336119
+      },
+      {
+        "timestamp": "2026-01-28T21:46:51.282Z",
+        "type": "confirmation_update",
+        "confirmations": 5,
+        "blockHeight": 24336119
+      },
+      {
+        "timestamp": "2026-01-28T21:47:04.937Z",
+        "type": "confirmation_update",
+        "confirmations": 6,
+        "blockHeight": 24336119
+      }
+    ]
+  },
+  {
+    "id": "ac6685ce-1c3d-4d19-a520-74f1201751d8",
+    "userId": "68dbc4a9952ed094a434797c",
+    "cryptocurrency": "eth",
+    "paymentAddress": "0xD92BF844e186be29cCFB9Da79561D0A941f7f19B",
+    "forwardingAddress": "0xb5bef8606e46a16c59fc8398b82f4c6bf948b169",
+    "forwardingId": null,
+    "webhookId": "13844555-7b64-4631-b718-ce3ffc3677d1",
+    "expectedAmount": 0.0012,
+    "receivedAmount": null,
+    "status": "cancelled",
+    "confirmations": 0,
+    "requiredConfirmations": 3,
+    "txHash": null,
+    "blockHeight": null,
+    "addressIndex": 6,
+    "metadata": {
+      "userEmail": "admin@example.com",
+      "userName": "Admin",
+      "amountUSD": 3.617736,
+      "addressSource": "local_hd_wallet"
+    },
+    "createdAt": "2026-01-28T21:45:27.114Z",
+    "updatedAt": "2026-01-28T21:54:38.641Z",
+    "expiresAt": "2026-01-29T07:45:27.114Z",
+    "detectedAt": null,
+    "confirmedAt": null,
+    "completedAt": null,
+    "transactionHistory": [],
+    "cancelledAt": "2026-01-28T21:54:38.641Z"
+  },
+  {
+    "id": "228a5adc-63a7-4ba7-a2e8-4ec455fbffeb",
+    "userId": "68dbc4a9952ed094a434797c",
+    "cryptocurrency": "eth",
+    "paymentAddress": "0x2EF0F0408dc54C2e464949F149daE96E9B38561b",
+    "forwardingAddress": "0xb5bef8606e46a16c59fc8398b82f4c6bf948b169",
+    "forwardingId": null,
+    "webhookId": "f7a94788-0ef6-433c-9655-662d1a9b5498",
+    "expectedAmount": 0.0011,
+    "receivedAmount": 0.0011,
+    "status": "completed",
+    "confirmations": 3,
+    "requiredConfirmations": 3,
+    "txHash": "d8d76693f8db17ad87b479c5d8ec0a67f10c058dce31ea9b66524ba4186a40e5",
+    "blockHeight": 24336166,
+    "addressIndex": 7,
+    "metadata": {
+      "userEmail": "admin@example.com",
+      "userName": "Admin",
+      "amountUSD": 3.3182270000000003,
+      "addressSource": "local_hd_wallet",
+      "autoForwardFailed": true,
+      "forwardingError": "Balance too low even to cover gas: need 0.000001130436762 ETH, have 0 ETH",
+      "failedAt": "2026-01-28T22:05:01.189Z",
+      "autoForwarded": true,
+      "forwardedAt": "2026-01-28T22:00:19.987Z",
+      "forwardingTxHash": "0x160cda3651d004ffea0e59a69c1b7f92f8b3ab54a04c278ebe403f95ea8feb2c",
+      "forwardedAmount": 0.0011,
+      "feeRemaining": 0,
+      "feeTaken": false,
+      "feePercentage": 0,
+      "networkFees": 0.000001041613839
+    },
+    "createdAt": "2026-01-28T21:55:03.962Z",
+    "updatedAt": "2026-01-28T22:05:01.189Z",
+    "expiresAt": "2026-01-29T07:55:03.962Z",
+    "detectedAt": null,
+    "confirmedAt": "2026-01-28T21:55:50.253Z",
+    "completedAt": "2026-01-28T21:55:50.259Z",
+    "transactionHistory": [
+      {
+        "timestamp": "2026-01-28T21:55:27.477Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 24336166
+      },
+      {
+        "timestamp": "2026-01-28T21:55:37.940Z",
+        "type": "confirmation_update",
+        "confirmations": 2,
+        "blockHeight": 24336166
+      },
+      {
+        "timestamp": "2026-01-28T21:55:50.253Z",
+        "type": "confirmation_update",
+        "confirmations": 3,
+        "blockHeight": 24336166
+      },
+      {
+        "timestamp": "2026-01-28T21:55:50.260Z",
+        "type": "payment_completed",
+        "finalAmount": 0.0011,
+        "finalConfirmations": 3,
+        "txHash": "d8d76693f8db17ad87b479c5d8ec0a67f10c058dce31ea9b66524ba4186a40e5"
+      }
+    ],
+    "finalAmount": 0.0011,
+    "finalConfirmations": 3
+  },
+  {
+    "id": "e41161c7-1a69-4b8c-9a9b-ef85fe53558a",
+    "userId": "68dbc4a9952ed094a434797c",
+    "cryptocurrency": "btc",
+    "paymentAddress": "bc1qz3azj8aglslfx80kyfc0pmj4w3yj75uwjry3fn",
+    "forwardingAddress": "13CVHm9yoA4u2urrnRTLNfuywzbmW2nmJA",
+    "forwardingId": null,
+    "webhookId": "1c2df15a-c177-4567-97c8-568703a5c80d",
+    "expectedAmount": 0.00011214156751483073,
+    "receivedAmount": null,
+    "status": "expired",
+    "confirmations": 0,
+    "requiredConfirmations": 2,
+    "txHash": null,
+    "blockHeight": null,
+    "addressIndex": 5,
+    "metadata": {
+      "userEmail": "admin@example.com",
+      "userName": "Admin",
+      "amountUSD": 10,
+      "addressSource": "local_hd_wallet"
+    },
+    "createdAt": "2026-01-28T22:18:54.293Z",
+    "updatedAt": "2026-01-29T08:20:10.542Z",
+    "expiresAt": "2026-01-29T08:18:54.293Z",
+    "detectedAt": null,
+    "confirmedAt": null,
+    "completedAt": null,
+    "transactionHistory": []
+  },
+  {
+    "id": "ddd1de13-c84b-4a74-ba5f-897d5ec8245e",
+    "userId": "68dbc4a9952ed094a434797c",
+    "cryptocurrency": "btc",
+    "paymentAddress": "bc1qvj8wxwqva0lw8zah7hqsp95nfp4clrysm28c7w",
+    "forwardingAddress": "1GWR1kswijEmdVEJVc75uYNKdiBqqLYVtq",
+    "forwardingId": null,
+    "webhookId": "58a17a60-265b-4f99-a126-b6bf1d6158e1",
+    "expectedAmount": 0.0001,
+    "receivedAmount": 0.00013248,
+    "status": "completed",
+    "confirmations": 1,
+    "requiredConfirmations": 1,
+    "txHash": "6248d4a401aa87e7c6c5b0e4ec45d88cccc0de39737082db51a37483a46a395b",
+    "blockHeight": 934137,
+    "addressIndex": 6,
+    "metadata": {
+      "userEmail": "admin@example.com",
+      "userName": "Admin",
+      "amountUSD": 8.9158,
+      "addressSource": "local_hd_wallet",
+      "autoForwardFailed": true,
+      "forwardingError": "Error sending transaction: Transaction 4a55ebb9232ec2be0eda2e89b855bc84edf1f6db42b21aefba909cc01da6b642 non standard: low fee rate.",
+      "failedAt": "2026-01-29T00:19:36.258Z",
+      "autoForwarded": true,
+      "forwardedAt": "2026-01-29T00:21:11.601Z",
+      "forwardingTxHash": "5a5157dc372f53d5d4b6f0773fa61d3725a98eb6a0638c3b5281565dd4bd88c6",
+      "forwardedAmount": 0.00009776,
+      "feeRemaining": 0,
+      "feeTaken": false,
+      "feePercentage": 0,
+      "networkFees": 0.00000224,
+      "networkFeeDeducted": true,
+      "originalAmount": 0.00013248
+    },
+    "createdAt": "2026-01-28T22:55:12.109Z",
+    "updatedAt": "2026-01-29T00:21:11.602Z",
+    "expiresAt": "2026-01-29T08:55:12.109Z",
+    "detectedAt": "2026-01-28T22:56:03.022Z",
+    "confirmedAt": "2026-01-28T22:59:50.566Z",
+    "completedAt": "2026-01-28T22:59:50.573Z",
+    "transactionHistory": [
+      {
+        "timestamp": "2026-01-28T22:56:03.022Z",
+        "type": "payment_detected",
+        "txHash": "6248d4a401aa87e7c6c5b0e4ec45d88cccc0de39737082db51a37483a46a395b",
+        "amount": 0.00013248,
+        "confirmations": 0
+      },
+      {
+        "timestamp": "2026-01-28T22:59:50.566Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 934137
+      },
+      {
+        "timestamp": "2026-01-28T22:59:50.573Z",
+        "type": "payment_completed",
+        "finalAmount": 0.00013248,
+        "finalConfirmations": 1,
+        "txHash": "6248d4a401aa87e7c6c5b0e4ec45d88cccc0de39737082db51a37483a46a395b"
+      }
+    ],
+    "finalAmount": 0.00013248,
+    "finalConfirmations": 1
   }
 ]

@@ -64,22 +64,35 @@ class ForwardingService {
             const expectedAmountUSD = session.metadata?.amountUSD || 0;
             const shouldTakeFee = expectedAmountUSD >= config.MINIMUM_FEE_THRESHOLD_USD;
 
+            // Estimate network fee (will be refined during transaction building)
+            const estimatedNetworkFee = 150; // ~150 sats for SegWit tx
+
             let amountToForward;
             let feeAmount;
             let feePercentage;
+            let networkFeeDeducted = false;
 
             if (shouldTakeFee) {
-                // Large payment: Take 2.5% fee
-                amountToForward = amount * this.percentage;
+                // Large payment: Take 2.5% service fee + network fee
+                const amountAfterNetworkFee = amount - (estimatedNetworkFee / 1e8);
+                if (amountAfterNetworkFee <= 0) {
+                    throw new Error('Payment too small to cover network fee');
+                }
+                amountToForward = amountAfterNetworkFee * this.percentage;
                 feeAmount = amount - amountToForward;
                 feePercentage = (1 - this.percentage) * 100;
-                logger.info(`[Auto-Forward] Payment ≥ $${config.MINIMUM_FEE_THRESHOLD_USD} - Taking ${feePercentage}% fee`);
+                logger.info(`[Auto-Forward] Payment ≥ ${config.MINIMUM_FEE_THRESHOLD_USD} - Taking ${feePercentage}% fee + network fee`);
             } else {
-                // Small payment: Forward 100% (no fee)
-                amountToForward = amount;
+                // Small payment: Forward 100% MINUS network fee
+                const amountAfterNetworkFee = amount - (estimatedNetworkFee / 1e8);
+                if (amountAfterNetworkFee <= 0) {
+                    throw new Error('Payment too small to cover network fee. Minimum: ~' + (estimatedNetworkFee / 1e8) + ' BTC');
+                }
+                amountToForward = amountAfterNetworkFee;
                 feeAmount = 0;
                 feePercentage = 0;
-                logger.info(`[Auto-Forward] Payment < $${config.MINIMUM_FEE_THRESHOLD_USD} - No fee (100% forward)`);
+                networkFeeDeducted = true;
+                logger.info(`[Auto-Forward] Payment < ${config.MINIMUM_FEE_THRESHOLD_USD} - Deducting network fee (${estimatedNetworkFee} sats), forwarding rest`);
             }
 
             // 3. Regenerate the local wallet to get the private key
@@ -90,13 +103,35 @@ class ForwardingService {
                 logger.debug(`[Auto-Forward] Fee remaining: ${feeAmount} ${cryptocurrency.toUpperCase()}`);
             }
 
-            // 4. Send the transaction
-            const result = await addressService.sendTransaction(
-                cryptocurrency,
-                localWallet.privateKey,
-                forwardingAddress,
-                amountToForward
-            );
+            // 4. Check if we have enough UTXOs, otherwise sweep
+            let result;
+            const utxoResult = await addressService.getUTXOs(crypto, localWallet.address);
+            const totalUtxo = utxoResult.utxos.reduce((sum, u) => sum + u.value, 0);
+            const requiredAmount = (amountToForward * 1e8) + 200; // Add buffer for fee
+
+            if (utxoResult.success && totalUtxo >= requiredAmount) {
+                // Normal forward
+                result = await addressService.sendTransaction(
+                    cryptocurrency,
+                    localWallet.privateKey,
+                    forwardingAddress,
+                    amountToForward
+                );
+            } else if (utxoResult.success && totalUtxo >= 600) {
+                // Sweep all available UTXOs
+                logger.info(`[Auto-Forward] UTXO insufficient (${totalUtxo} sats), sweeping all funds...`);
+                result = await addressService.sweepAddress(
+                    cryptocurrency,
+                    localWallet.privateKey,
+                    forwardingAddress
+                );
+                if (result.success) {
+                    amountToForward = result.amountForwarded;
+                    networkFeeDeducted = true;
+                }
+            } else {
+                throw new Error(`Insufficient UTXO for sweep (${totalUtxo} sats). Need at least ~600 sats.`);
+            }
 
             if (result.success) {
                 logger.info(`[Auto-Forward] ✓ SUCCESS - TX: ${result.txHash}`);
@@ -112,7 +147,9 @@ class ForwardingService {
                         feeRemaining: feeAmount,
                         feeTaken: shouldTakeFee,
                         feePercentage: feePercentage,
-                        networkFees: result.fees
+                        networkFees: result.fees,
+                        networkFeeDeducted: networkFeeDeducted,
+                        originalAmount: amount
                     }
                 });
             } else {

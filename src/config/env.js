@@ -19,11 +19,14 @@ export const BLOCKCYPHER_API_TOKEN = process.env.BLOCKCYPHER_API_TOKEN || '';
 export const BLOCKCYPHER_API_URL = process.env.BLOCKCYPHER_API_URL || 'https://api.blockcypher.com/v1';
 
 // Ethereum RPC Provider URLs
-export const ETH_RPC_URL = process.env.ETH_RPC_URL || 'https://eth.llamarpc.com';
-export const BETH_RPC_URL = process.env.BETH_RPC_URL || 'https://goerli.infura.io/v3/YOUR_PROJECT_ID';
+// Ethereum RPC Provider URLs
+export const ETH_RPC_URL = process.env.ETH_RPC_URL || 'https://cloudflare-eth.com';
+export const BETH_RPC_URL = process.env.BETH_RPC_URL || 'https://ethereum-holesky-rpc.publicnode.com';
 
 // Transaction fee configuration
-export const BTC_FEE_RATE_SATS_PER_BYTE = parseInt(process.env.BTC_FEE_RATE_SATS_PER_BYTE || '3', 10);
+// Use 1-2 sat/vbyte for normal priority, 3+ for urgent
+// BlockCypher requires minimum ~1 sat/vbyte for standard transactions
+export const BTC_FEE_RATE_SATS_PER_BYTE = parseInt(process.env.BTC_FEE_RATE_SATS_PER_BYTE || '2', 10);
 export const BCY_FEE_RATE_SATS_PER_BYTE = parseInt(process.env.BCY_FEE_RATE_SATS_PER_BYTE || '1', 10);
 
 // Server configuration

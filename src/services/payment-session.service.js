@@ -193,7 +193,24 @@ class PaymentSessionManager {
      * @returns {Object|null} Session or null if not found
      */
     getSessionByAddress(address) {
-        const sessionId = this.addressIndex.get(address.toLowerCase());
+        if (!address) return null;
+
+        const cleanAddress = address.toLowerCase();
+
+        // 1. Try direct match
+        let sessionId = this.addressIndex.get(cleanAddress);
+
+        // 2. If no match and looks like an ETH address, try toggling 0x prefix
+        if (!sessionId && cleanAddress.length >= 40) {
+            if (cleanAddress.startsWith('0x')) {
+                // Try without 0x
+                sessionId = this.addressIndex.get(cleanAddress.substring(2));
+            } else {
+                // Try with 0x
+                sessionId = this.addressIndex.get('0x' + cleanAddress);
+            }
+        }
+
         if (!sessionId) return null;
         return this.getSession(sessionId);
     }

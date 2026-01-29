@@ -144,7 +144,7 @@ class BatchTransactionService {
                             index: utxo.outputIndex,
                             witnessUtxo: {
                                 script: output.script,
-                                value: utxo.value
+                                value: BigInt(utxo.value)
                             }
                         });
                     } else {
@@ -196,7 +196,7 @@ class BatchTransactionService {
             // Add output
             psbt.addOutput({
                 address: destinationAddress,
-                value: outputValue
+                value: BigInt(outputValue)
             });
 
             // Sign all inputs

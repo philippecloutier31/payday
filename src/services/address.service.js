@@ -2,6 +2,8 @@ import fetch from 'node-fetch';
 import config from '../config/env.js';
 import * as bitcoin from 'bitcoinjs-lib';
 import * as ecc from 'tiny-secp256k1';
+import { ECPairFactory } from 'ecpair';
+const ECPair = ECPairFactory(ecc.default || ecc);
 import { ethers } from 'ethers';
 
 /**
@@ -482,7 +484,7 @@ class AddressService {
             const feeRate = this.getFeeRate(crypto);
 
             // 1. Derive source address from private key
-            const keyPair = bitcoin.ECPair.fromPrivateKey(
+            const keyPair = ECPair.fromPrivateKey(
                 Buffer.from(fromPrivateKey, 'hex'),
                 { network }
             );
@@ -493,6 +495,9 @@ class AddressService {
 
             const fromAddress = payment.address;
             console.log(`[TX] Source address: ${fromAddress}`);
+
+            // Check address type for fee estimation
+            const isBech32 = fromAddress.startsWith('bc1') || fromAddress.startsWith('tb1');
 
             // 2. Fetch UTXOs
             const utxoResult = await this.getUTXOs(crypto, fromAddress);
@@ -516,9 +521,11 @@ class AddressService {
             console.log(`[TX] Found ${confirmedUtxos.length} UTXOs, total: ${totalInput} sats`);
 
             // 4. Estimate fee
-            const estimatedSize = (confirmedUtxos.length * 180) + 34 + 10;
-            const estimatedFee = estimatedSize * feeRate;
-            console.log(`[TX] Estimated fee: ${estimatedFee} sats (${estimatedSize} bytes @ ${feeRate} sat/byte)`);
+            // SegWit (P2WPKH): ~68 vbytes per input (vs 180 for legacy)
+            const inputVBytes = isBech32 ? 68 : 180;
+            const estimatedVBytes = (confirmedUtxos.length * inputVBytes) + 34 + 10;
+            const estimatedFee = estimatedVBytes * feeRate;
+            console.log(`[TX] Estimated fee: ${estimatedFee} sats (${estimatedVBytes} vbytes @ ${feeRate} sat/vbyte)`);
 
             // 5. Calculate output
             const amountSats = Math.floor(amount * 1e8);
@@ -552,18 +559,49 @@ class AddressService {
                     continue;
                 }
 
-                psbt.addInput({
-                    hash: utxo.txHash,
-                    index: utxo.outputIndex,
-                    nonWitnessUtxo: Buffer.from(txData.hex, 'hex')
-                });
+                // Add input to PSBT. Handle Bech32 (SegWit) vs Legacy
+                const txHex = Buffer.from(txData.hex, 'hex');
+                const isBech32 = fromAddress.startsWith('bc1') || fromAddress.startsWith('tb1');
+
+                if (isBech32) {
+                    // For SegWit, we need specific output data
+                    const tx = bitcoin.Transaction.fromHex(txData.hex);
+                    const output = tx.outs[utxo.outputIndex];
+                    psbt.addInput({
+                        hash: utxo.txHash,
+                        index: utxo.outputIndex,
+                        witnessUtxo: {
+                            script: output.script,
+                            value: BigInt(utxo.value)
+                        }
+                    });
+                } else {
+                    // For Legacy
+                    psbt.addInput({
+                        hash: utxo.txHash,
+                        index: utxo.outputIndex,
+                        nonWitnessUtxo: txHex
+                    });
+                }
             }
 
-            // Add output
+            // Add output (destination)
             psbt.addOutput({
                 address: toAddress,
-                value: outputValue
+                value: BigInt(outputValue)
             });
+
+            // Calculate change and add change output if there's excess
+            const changeValue = totalInput - outputValue - estimatedFee;
+            if (changeValue >= 546) {
+                console.log(`[TX] Change output: ${changeValue} sats back to ${fromAddress}`);
+                psbt.addOutput({
+                    address: fromAddress,
+                    value: BigInt(changeValue)
+                });
+            } else {
+                console.log(`[TX] No change output (dust: ${changeValue} sats < 546)`);
+            }
 
             // 7. Sign transaction locally
             console.log(`[TX] Signing ${psbt.data.inputs.length} inputs locally...`);
@@ -587,7 +625,8 @@ class AddressService {
                 return {
                     success: true,
                     txHash: broadcastResult.txHash,
-                    fees: estimatedFee / 1e8
+                    fees: estimatedFee / 1e8,
+                    amountForwarded: outputValue / 1e8
                 };
             } else {
                 return broadcastResult;
@@ -603,6 +642,142 @@ class AddressService {
     }
 
     /**
+     * Sweep all UTXOs from an address to a destination (minus network fee)
+     * Useful for forwarding when UTXO is smaller than expected payment
+     */
+    async sweepAddress(crypto, fromPrivateKey, toAddress) {
+        try {
+            console.log(`[TX] Sweeping BTC from address to ${toAddress}`);
+
+            const network = this.getNetwork(crypto);
+            const feeRate = this.getFeeRate(crypto);
+
+            // 1. Derive source address from private key
+            const keyPair = ECPair.fromPrivateKey(
+                Buffer.from(fromPrivateKey, 'hex'),
+                { network }
+            );
+
+            const payment = crypto.includes('bcy')
+                ? bitcoin.payments.p2pkh({ pubkey: keyPair.publicKey, network })
+                : bitcoin.payments.p2wpkh({ pubkey: keyPair.publicKey, network });
+
+            const fromAddress = payment.address;
+            console.log(`[TX] Sweeping from: ${fromAddress}`);
+
+            // 2. Fetch UTXOs
+            const utxoResult = await this.getUTXOs(crypto, fromAddress);
+            if (!utxoResult.success || utxoResult.utxos.length === 0) {
+                return {
+                    success: false,
+                    error: 'No unspent outputs found for address'
+                };
+            }
+
+            // 3. Filter confirmed UTXOs
+            const confirmedUtxos = utxoResult.utxos.filter(utxo => utxo.confirmations > 0);
+            if (confirmedUtxos.length === 0) {
+                return {
+                    success: false,
+                    error: 'No confirmed UTXOs available'
+                };
+            }
+
+            const totalInput = confirmedUtxos.reduce((sum, utxo) => sum + utxo.value, 0);
+            console.log(`[TX] Found ${confirmedUtxos.length} UTXOs, total: ${totalInput} sats`);
+
+            // 4. Check address type for fee estimation
+            const isBech32 = fromAddress.startsWith('bc1') || fromAddress.startsWith('tb1');
+            const inputVBytes = isBech32 ? 68 : 180;
+            const estimatedVBytes = (confirmedUtxos.length * inputVBytes) + 34 + 10;
+            const estimatedFee = estimatedVBytes * feeRate;
+
+            // 5. Calculate sweep amount (all inputs minus fee)
+            const sweepAmount = totalInput - estimatedFee;
+
+            if (sweepAmount < 546) {
+                return {
+                    success: false,
+                    error: `Sweep amount too small (${sweepAmount} sats < 546 dust limit)`
+                };
+            }
+
+            console.log(`[TX] Sweeping ${sweepAmount} sats (fee: ${estimatedFee} sats)`);
+
+            // 6. Build PSBT
+            const psbt = new bitcoin.Psbt({ network });
+
+            for (const utxo of confirmedUtxos) {
+                const txData = await this.getTransactionHex(crypto, utxo.txHash);
+                if (!txData.success) {
+                    console.warn(`[TX] Failed to fetch TX ${utxo.txHash}, skipping`);
+                    continue;
+                }
+
+                const txHex = Buffer.from(txData.hex, 'hex');
+
+                if (isBech32) {
+                    const tx = bitcoin.Transaction.fromHex(txData.hex);
+                    const output = tx.outs[utxo.outputIndex];
+                    psbt.addInput({
+                        hash: utxo.txHash,
+                        index: utxo.outputIndex,
+                        witnessUtxo: {
+                            script: output.script,
+                            value: BigInt(utxo.value)
+                        }
+                    });
+                } else {
+                    psbt.addInput({
+                        hash: utxo.txHash,
+                        index: utxo.outputIndex,
+                        nonWitnessUtxo: txHex
+                    });
+                }
+            }
+
+            // Add single output (sweep)
+            psbt.addOutput({
+                address: toAddress,
+                value: BigInt(sweepAmount)
+            });
+
+            // 7. Sign and finalize
+            console.log(`[TX] Signing ${psbt.data.inputs.length} inputs...`);
+            for (let i = 0; i < psbt.data.inputs.length; i++) {
+                psbt.signInput(i, keyPair);
+            }
+
+            psbt.finalizeAllInputs();
+            const tx = psbt.extractTransaction();
+            const txHex = tx.toHex();
+            const txId = tx.getId();
+
+            // 8. Broadcast
+            const broadcastResult = await this.broadcastTransaction(crypto, txHex);
+
+            if (broadcastResult.success) {
+                return {
+                    success: true,
+                    txHash: broadcastResult.txHash,
+                    fees: estimatedFee / 1e8,
+                    amountForwarded: sweepAmount / 1e8,
+                    isSweep: true
+                };
+            } else {
+                return broadcastResult;
+            }
+
+        } catch (error) {
+            console.error(`[TX] Error in sweep:`, error);
+            return {
+                success: false,
+                error: error.message
+            };
+        }
+    }
+
+    /**
      * Send Ethereum transaction using ethers.js
      * Private keys never leave the server
      */
@@ -610,11 +785,31 @@ class AddressService {
         try {
             console.log(`[TX] Starting ETH transaction: ${amount} ${crypto.toUpperCase()} to ${toAddress}`);
 
-            // 1. Initialize RPC provider
+            // 1. Initialize RPC provider with Fallback
             const rpcUrl = crypto === 'beth' ? config.BETH_RPC_URL : config.ETH_RPC_URL;
+            // Backup RPC for Mainnet (LlamaNodes is a reliable public alternative)
+            const backupRpcUrl = 'https://eth.llamarpc.com';
+
             console.log(`[TX] Using RPC provider: ${rpcUrl}`);
 
-            const provider = new ethers.JsonRpcProvider(rpcUrl);
+            let provider;
+            try {
+                // Try primary
+                provider = new ethers.JsonRpcProvider(rpcUrl, null, {
+                    staticNetwork: crypto === 'beth' ? ethers.Network.from(17000) : ethers.Network.from(1)
+                });
+                // Test connection
+                await provider.getBlockNumber();
+            } catch (e) {
+                console.warn(`[TX] Primary RPC failed, switching to backup: ${backupRpcUrl}`);
+                if (crypto === 'eth') {
+                    provider = new ethers.JsonRpcProvider(backupRpcUrl, null, {
+                        staticNetwork: ethers.Network.from(1)
+                    });
+                } else {
+                    throw e; // No backup for testnet configured
+                }
+            }
 
             // 2. Create wallet from private key
             const wallet = new ethers.Wallet(fromPrivateKey, provider);
@@ -650,19 +845,28 @@ class AddressService {
             const feeInEth = parseFloat(ethers.formatEther(totalFee));
             console.log(`[TX] Estimated fee: ${feeInEth} ETH`);
 
-            // 7. Validate sufficient balance
+            // 7. Validate sufficient balance and adjust if needed (Max Send logic)
+            let finalValueWei = valueWei;
             const totalCost = valueWei + totalFee;
+
             if (balance < totalCost) {
-                return {
-                    success: false,
-                    error: `Insufficient balance for amount + gas: need ${ethers.formatEther(totalCost)} ETH, have ${balanceEth} ETH`
-                };
+                console.log(`[TX] Requested amount + gas exceeds balance. Adjusting to max sendable...`);
+                // Final value is Whatever is in the wallet MINUS the cost of gas
+                if (balance > totalFee) {
+                    finalValueWei = balance - totalFee;
+                    console.log(`[TX] Adjusted amount: ${ethers.formatEther(finalValueWei)} ETH (Original: ${amount})`);
+                } else {
+                    return {
+                        success: false,
+                        error: `Balance too low even to cover gas: need ${ethers.formatEther(totalFee)} ETH, have ${balanceEth} ETH`
+                    };
+                }
             }
 
             // 8. Build transaction
             const tx = {
                 to: toAddress,
-                value: valueWei,
+                value: finalValueWei,
                 gasLimit: estimatedGas,
                 gasPrice: gasPrice
             };
