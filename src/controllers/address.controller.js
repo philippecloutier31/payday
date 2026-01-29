@@ -2,7 +2,12 @@ import { addressService } from '../services/address.service.js';
 import { paymentSessionManager } from '../services/payment-session.service.js';
 import { webhookService } from '../services/webhook.service.js';
 import { walletService } from '../services/wallet.service.js';
-import config from '../config/env.js';
+import config, {
+    getBtcMainAddress,
+    getEthMainAddress,
+    getBcyMainAddress,
+    getBethMainAddress
+} from '../config/env.js';
 
 /**
  * Create a new payment address for receiving crypto
@@ -37,16 +42,16 @@ export const createPaymentAddress = async (req, res, next) => {
         // Log chain and amount for payment address creation
         console.log(`[PaymentGateway] Creating payment address - Chain: ${crypto.toUpperCase()}, Amount: ${amount || 'N/A'}, UserId: ${userId}`);
 
-        // Get main address based on cryptocurrency
+        // Get main address based on cryptocurrency (uses dynamic config, falls back to .env)
         let mainAddress;
         if (crypto === 'beth') {
-            mainAddress = config.BETH_MAIN_ADDRESS;
+            mainAddress = getBethMainAddress();
         } else if (crypto === 'bcy') {
-            mainAddress = config.BCY_MAIN_ADDRESS;
+            mainAddress = getBcyMainAddress();
         } else if (crypto.includes('btc')) {
-            mainAddress = config.BTC_MAIN_ADDRESS;
+            mainAddress = getBtcMainAddress();
         } else {
-            mainAddress = config.ETH_MAIN_ADDRESS;
+            mainAddress = getEthMainAddress();
         }
 
 

@@ -10,6 +10,7 @@ import addressRoutes from './routes/address.routes.js';
 import sessionRoutes from './routes/session.routes.js';
 import webhookRoutes from './routes/webhook.routes.js';
 import feeRoutes from './routes/fee.routes.js';
+import configRoutes from './routes/config.routes.js';
 import './services/forwarding.service.js'; // Initialize auto-forwarding
 
 // Import confirmation service for event handling
@@ -141,6 +142,7 @@ app.use('/address', addressRoutes);
 app.use('/session', sessionRoutes);
 app.use('/webhook', webhookRoutes);
 app.use('/fees', feeRoutes);
+app.use('/config', configRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

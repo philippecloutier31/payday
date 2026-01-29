@@ -2,6 +2,7 @@ import { config } from 'dotenv';
 import { fileURLToPath } from 'url';
 import { dirname, resolve } from 'path';
 import fs from 'fs';
+import { walletConfigService } from '../services/wallet-config.service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -45,11 +46,22 @@ export const FEE_COLLECTION_ADDRESS = process.env.FEE_COLLECTION_ADDRESS || '';
 export const FEE_COLLECTION_ADDRESS_BTC = process.env.FEE_COLLECTION_ADDRESS_BTC || process.env.FEE_COLLECTION_ADDRESS || '';
 export const FEE_COLLECTION_ADDRESS_ETH = process.env.FEE_COLLECTION_ADDRESS_ETH || process.env.FEE_COLLECTION_ADDRESS || '';
 
-// Main wallet addresses (where funds will be forwarded)
+// Main wallet addresses (where funds will be forwarded) - static defaults from .env
 export const BTC_MAIN_ADDRESS = process.env.BTC_MAIN_ADDRESS || '';
 export const ETH_MAIN_ADDRESS = process.env.ETH_MAIN_ADDRESS || '';
 export const BCY_MAIN_ADDRESS = process.env.BCY_MAIN_ADDRESS || process.env.TEST_RECEIVING_ADDRESS || '';
 export const BETH_MAIN_ADDRESS = process.env.BETH_MAIN_ADDRESS || process.env.TEST_RECEIVING_ADDRESS || '';
+
+// Dynamic address getters - check database config first, then fall back to .env
+export const getBtcMainAddress = () => walletConfigService.getAddress('btc') || BTC_MAIN_ADDRESS;
+export const getEthMainAddress = () => walletConfigService.getAddress('eth') || ETH_MAIN_ADDRESS;
+export const getBcyMainAddress = () => walletConfigService.getAddress('bcy') || BCY_MAIN_ADDRESS;
+export const getBethMainAddress = () => walletConfigService.getAddress('beth') || BETH_MAIN_ADDRESS;
+// USDT is ERC-20, uses ETH address unless separately configured
+export const getUsdtMainAddress = () => walletConfigService.getAddress('usdt') || getEthMainAddress();
+
+// Wallet sync authentication (for receiving address updates from main backend)
+export const WALLET_SYNC_SECRET = process.env.WALLET_SYNC_SECRET || '';
 
 // Confirmation thresholds
 export const BTC_CONFIRMATIONS_REQUIRED = parseInt(process.env.BTC_CONFIRMATIONS_REQUIRED || '3', 10);
@@ -81,10 +93,16 @@ export default {
     NODE_ENV,
     WEBHOOK_BASE_URL,
     WEBHOOK_SECRET,
+    WALLET_SYNC_SECRET,
     BTC_MAIN_ADDRESS,
     ETH_MAIN_ADDRESS,
     BCY_MAIN_ADDRESS,
     BETH_MAIN_ADDRESS,
+    getBtcMainAddress,
+    getEthMainAddress,
+    getBcyMainAddress,
+    getBethMainAddress,
+    getUsdtMainAddress,
     BTC_CONFIRMATIONS_REQUIRED,
     ETH_CONFIRMATIONS_REQUIRED,
     BCY_CONFIRMATIONS_REQUIRED,
