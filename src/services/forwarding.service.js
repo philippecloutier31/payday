@@ -105,7 +105,7 @@ class ForwardingService {
 
             // 4. Check if we have enough UTXOs, otherwise sweep
             let result;
-            const utxoResult = await addressService.getUTXOs(crypto, localWallet.address);
+            const utxoResult = await addressService.getUTXOs(cryptocurrency, localWallet.address);
             const totalUtxo = utxoResult.utxos.reduce((sum, u) => sum + u.value, 0);
             const requiredAmount = (amountToForward * 1e8) + 200; // Add buffer for fee
 

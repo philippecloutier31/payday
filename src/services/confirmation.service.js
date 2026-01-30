@@ -26,7 +26,9 @@ class ConfirmationService {
             onConfirmationUpdate: [],
             onPaymentConfirmed: [],
             onPaymentCompleted: [],
-            onPaymentFailed: []
+            onPaymentFailed: [],
+            onPaymentUnderpaid: [],
+            onPaymentOverpaid: []
         };
     }
 
@@ -106,13 +108,21 @@ class ConfirmationService {
         // Calculate received amount from outputs
         const amount = this.calculateReceivedAmount(session, outputs, total, received);
 
+        // For sessions with partial payments, accumulate the amount
+        const previousReceived = session.receivedAmount || 0;
+        const totalReceived = session.metadata?.partialPayment
+            ? previousReceived + amount
+            : amount;
+
+        console.log(`[Confirmation] Amount: ${amount}, Previous: ${previousReceived}, Total: ${totalReceived}`);
+
         // Handle based on confirmation count
         if (confirmations === 0) {
             // Transaction detected but unconfirmed
-            return await this.handleUnconfirmedTransaction(session, txHash, amount, rawPayload);
+            return await this.handleUnconfirmedTransaction(session, txHash, totalReceived, rawPayload);
         } else {
             // Transaction has confirmations
-            return await this.handleConfirmedTransaction(session, txHash, confirmations, amount, blockHeight, rawPayload);
+            return await this.handleConfirmedTransaction(session, txHash, confirmations, totalReceived, blockHeight, rawPayload);
         }
     }
 
@@ -168,11 +178,25 @@ class ConfirmationService {
         console.log(`Unconfirmed transaction detected for session ${session.id}`);
         console.log(`Amount: ${amount} ${session.cryptocurrency.toUpperCase()}`);
 
-        // Update session with transaction details
-        paymentSessionManager.markPaymentDetected(session.id, {
-            txHash,
-            amount
-        });
+        // Check if this is a partial payment session
+        if (session.metadata?.partialPayment) {
+            // Update the received amount for partial payment
+            paymentSessionManager.updateSession(session.id, {
+                receivedAmount: amount,
+                txHash: txHash, // Update to latest tx
+                metadata: {
+                    ...session.metadata,
+                    partialPaymentAmount: amount,
+                    partialPaymentAt: new Date().toISOString()
+                }
+            });
+        } else {
+            // First transaction - mark as detected
+            paymentSessionManager.markPaymentDetected(session.id, {
+                txHash,
+                amount
+            });
+        }
 
         // Emit event
         await this.emit('onPaymentDetected', {
@@ -261,6 +285,55 @@ class ConfirmationService {
     async handlePaymentConfirmed(session, txHash, confirmations, amount, rawPayload) {
         console.log(`Payment confirmed for session ${session.id}!`);
         console.log(`Amount: ${amount} ${session.cryptocurrency.toUpperCase()}`);
+
+        // Validate amount matches expected (no tolerance - exact amount only)
+        if (session.expectedAmount && session.expectedAmount > 0) {
+            const amountMatch = this.checkAmountMatch(session.expectedAmount, amount, 0);
+
+            if (!amountMatch.match) {
+                const status = amountMatch.overpaid ? 'overpaid' : 'underpaid';
+                console.warn(`[Confirmation] Payment ${status} for session ${session.id}: expected ${session.expectedAmount}, got ${amount}`);
+
+                // Update session with received amount but keep in confirming state
+                // Wait for another transaction with exact amount
+                paymentSessionManager.updateSession(session.id, {
+                    receivedAmount: amount,
+                    metadata: {
+                        ...session.metadata,
+                        partialPayment: true,
+                        partialPaymentAmount: amount,
+                        partialPaymentAt: new Date().toISOString()
+                    }
+                });
+
+                // Emit event for manual handling (don't complete the session)
+                await this.emit(`onPayment${status.charAt(0).toUpperCase() + status.slice(1)}`, {
+                    sessionId: session.id,
+                    userId: session.userId,
+                    txHash,
+                    confirmations,
+                    amount,
+                    expectedAmount: session.expectedAmount,
+                    cryptocurrency: session.cryptocurrency,
+                    paymentAddress: session.paymentAddress,
+                    metadata: session.metadata
+                });
+
+                console.log(`[Confirmation] Waiting for exact amount. Received: ${amount}, Expected: ${session.expectedAmount}`);
+
+                return {
+                    success: false,
+                    status: 'waiting_exact_amount',
+                    error: `Amount ${amount} does not match expected ${session.expectedAmount}. Session still waiting for exact amount.`,
+                    txHash,
+                    amount,
+                    expectedAmount: session.expectedAmount,
+                    sessionId: session.id
+                };
+            }
+
+            console.log(`[Confirmation] Amount verified: ${amount} (exact match)`);
+        }
 
         // Emit confirmed event
         await this.emit('onPaymentConfirmed', {
@@ -375,7 +448,7 @@ class ConfirmationService {
      * @param {number} tolerance - Tolerance percentage (default: 1%)
      * @returns {Object} Match result
      */
-    checkAmountMatch(expected, received, tolerance = 0.01) {
+    checkAmountMatch(expected, received, tolerance = 0) {
         if (!expected || expected <= 0) {
             // No expected amount set, any amount is valid
             return {
@@ -389,8 +462,9 @@ class ConfirmationService {
         const difference = received - expected;
         const differencePercent = Math.abs(difference) / expected;
 
-        // Check if within tolerance
-        const match = differencePercent <= tolerance || received >= expected;
+        // Only accept exact amount - no tolerance for underpayment or overpayment
+        // Overpayments will be handled manually on the backend
+        const match = received >= expected && differencePercent <= tolerance;
 
         return {
             match,

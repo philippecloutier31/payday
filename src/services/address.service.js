@@ -298,7 +298,20 @@ class AddressService {
             const chainId = this.getChainId(crypto);
             const url = `${this.apiUrl}/${chainId}/addrs/${address}?token=${this.apiToken}`;
 
-            const response = await fetch(url);
+            console.log(`[AddressService] Fetching address info for ${address} (${crypto})`);
+
+            // Add timeout to prevent hanging
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                console.warn(`[AddressService] Timeout fetching address info for ${address}`);
+                controller.abort();
+            }, 30000); // 30 second timeout
+
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            console.log(`[AddressService] Received response for ${address}`);
+
             const data = await response.json();
 
             if (!response.ok) {
@@ -326,10 +339,14 @@ class AddressService {
             };
 
         } catch (error) {
-            console.error('Error getting address info:', error);
+            if (error.name === 'AbortError') {
+                console.error(`[AddressService] Request aborted (timeout) for ${address}: ${error.message}`);
+            } else {
+                console.error(`[AddressService] Error getting address info for ${address}: ${error.message}`);
+            }
             return {
                 success: false,
-                error: error.message
+                error: error.name === 'AbortError' ? 'Request timeout' : error.message
             };
         }
     }
@@ -370,13 +387,84 @@ class AddressService {
 
     /**
      * Fetch UTXOs for an address
+     * Uses Mempool.space for BTC mainnet (no rate limits), BlockCypher for others
      */
     async getUTXOs(crypto, address) {
+        // Use Mempool.space for BTC mainnet (free, no rate limits)
+        if (crypto === 'btc') {
+            return await this._getUTXOsMempool(address);
+        }
+
+        // Fallback to BlockCypher for testnets and other chains
+        return await this._getUTXOsBlockCypher(crypto, address);
+    }
+
+    /**
+     * Fetch UTXOs from Mempool.space (no API key, no rate limits)
+     */
+    async _getUTXOsMempool(address) {
+        try {
+            const url = `https://mempool.space/api/address/${address}/utxo`;
+
+            // Add timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                console.warn(`[UTXO] Mempool timeout for ${address}`);
+                controller.abort();
+            }, 30000);
+
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+
+            const utxos = data.map(ref => ({
+                txHash: ref.txid,
+                outputIndex: ref.vout,
+                value: ref.value,
+                confirmations: ref.status.confirmed ? 1 : 0
+            }));
+
+            const balance = utxos.reduce((sum, utxo) => sum + utxo.value, 0);
+
+            return {
+                success: true,
+                utxos,
+                balance,
+                source: 'mempool.space'
+            };
+
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.warn(`[UTXO] Mempool request aborted (timeout) for ${address}`);
+            } else {
+                console.warn(`[UTXO] Mempool failed, falling back to BlockCypher: ${error.message}`);
+            }
+            return await this._getUTXOsBlockCypher('btc', address);
+        }
+    }
+
+    /**
+     * Fetch UTXOs from BlockCypher
+     */
+    async _getUTXOsBlockCypher(crypto, address) {
         try {
             const chainId = this.getChainId(crypto);
             const url = `${this.apiUrl}/${chainId}/addrs/${address}?unspentOnly=true&token=${this.apiToken}`;
 
-            const response = await fetch(url);
+            // Add timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                console.warn(`[UTXO] BlockCypher timeout for ${address}`);
+                controller.abort();
+            }, 30000);
+
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
             const data = await response.json();
 
             if (!response.ok) {
@@ -393,7 +481,8 @@ class AddressService {
             return {
                 success: true,
                 utxos,
-                balance: data.balance || 0
+                balance: data.balance || 0,
+                source: 'blockcypher'
             };
 
         } catch (error) {
@@ -408,14 +497,73 @@ class AddressService {
     }
 
     /**
-     * Fetch raw transaction hex from BlockCypher
+     * Fetch raw transaction hex
+     * Uses Mempool.space for BTC mainnet (no rate limits), BlockCypher for others
      */
     async getTransactionHex(crypto, txHash) {
+        // Use Mempool.space for BTC mainnet
+        if (crypto === 'btc') {
+            return await this._getTxHexMempool(txHash);
+        }
+        return await this._getTxHexBlockCypher(crypto, txHash);
+    }
+
+    /**
+     * Fetch TX hex from Mempool.space
+     */
+    async _getTxHexMempool(txHash) {
+        try {
+            const url = `https://mempool.space/api/tx/${txHash}/hex`;
+
+            // Add timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                console.warn(`[TX] Mempool timeout for ${txHash}`);
+                controller.abort();
+            }, 30000);
+
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const hex = await response.text();
+
+            return {
+                success: true,
+                hex,
+                source: 'mempool.space'
+            };
+        } catch (error) {
+            if (error.name === 'AbortError') {
+                console.warn(`[TX] Mempool request aborted (timeout) for ${txHash}`);
+            } else {
+                console.warn(`[TX] Mempool tx fetch failed, trying BlockCypher: ${error.message}`);
+            }
+            return await this._getTxHexBlockCypher('btc', txHash);
+        }
+    }
+
+    /**
+     * Fetch TX hex from BlockCypher
+     */
+    async _getTxHexBlockCypher(crypto, txHash) {
         try {
             const chainId = this.getChainId(crypto);
             const url = `${this.apiUrl}/${chainId}/txs/${txHash}?includeHex=true&token=${this.apiToken}`;
 
-            const response = await fetch(url);
+            // Add timeout
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => {
+                console.warn(`[TX] BlockCypher timeout for ${txHash}`);
+                controller.abort();
+            }, 30000);
+
+            const response = await fetch(url, { signal: controller.signal });
+            clearTimeout(timeoutId);
+
             const data = await response.json();
 
             if (!response.ok || !data.hex) {
@@ -424,9 +572,9 @@ class AddressService {
 
             return {
                 success: true,
-                hex: data.hex
+                hex: data.hex,
+                source: 'blockcypher'
             };
-
         } catch (error) {
             return {
                 success: false,
@@ -437,39 +585,126 @@ class AddressService {
 
     /**
      * Broadcast a signed transaction to the network
+     * Uses BlockCypher with fallback to Mempool.space and Blockstream
      */
     async broadcastTransaction(crypto, txHex) {
-        try {
-            const chainId = this.getChainId(crypto);
-            const url = `${this.apiUrl}/${chainId}/txs/push?token=${this.apiToken}`;
-
-            const response = await fetch(url, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ tx: txHex })
-            });
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(data.error || JSON.stringify(data));
-            }
-
-            console.log(`[TX] Broadcast successful! TX Hash: ${data.tx.hash}`);
-
-            return {
-                success: true,
-                txHash: data.tx.hash,
-                rawResponse: data
-            };
-
-        } catch (error) {
-            console.error('[TX] Broadcast failed:', error.message);
-            return {
-                success: false,
-                error: error.message
-            };
+        // Only apply fallback for BTC mainnet
+        if (!crypto.includes('btc') || crypto.includes('test')) {
+            return await this._broadcastViaBlockCypher(crypto, txHex);
         }
+
+        // Try BlockCypher first
+        try {
+            const result = await this._broadcastViaBlockCypher(crypto, txHex);
+            if (result.success) return result;
+        } catch (e) {
+            console.warn('[TX] BlockCypher broadcast failed, trying fallback...');
+        }
+
+        // Try Mempool.space
+        try {
+            console.log('[TX] Trying Mempool.space...');
+            const mempoolResult = await this._broadcastViaMempool(txHex);
+            if (mempoolResult.success) return mempoolResult;
+        } catch (e) {
+            console.warn('[TX] Mempool.space failed:', e.message);
+        }
+
+        // Try Blockstream
+        try {
+            console.log('[TX] Trying Blockstream...');
+            const blockstreamResult = await this._broadcastViaBlockstream(txHex);
+            if (blockstreamResult.success) return blockstreamResult;
+        } catch (e) {
+            console.warn('[TX] Blockstream failed:', e.message);
+        }
+
+        return {
+            success: false,
+            error: 'All broadcasters failed'
+        };
+    }
+
+    /**
+     * Broadcast via BlockCypher
+     */
+    async _broadcastViaBlockCypher(crypto, txHex) {
+        const chainId = this.getChainId(crypto);
+        const url = `${this.apiUrl}/${chainId}/txs/push?token=${this.apiToken}`;
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tx: txHex })
+        });
+
+        if (!response.ok) {
+            const data = await response.json().catch(() => ({}));
+            throw new Error(data.error || `HTTP ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log(`[TX] BlockCypher broadcast successful! TX Hash: ${data.tx.hash}`);
+
+        return {
+            success: true,
+            txHash: data.tx.hash,
+            source: 'blockcypher'
+        };
+    }
+
+    /**
+     * Broadcast via Mempool.space (no API key required)
+     */
+    async _broadcastViaMempool(txHex) {
+        const url = 'https://mempool.space/api/tx';
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: txHex
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || `HTTP ${response.status}`);
+        }
+
+        const txHash = await response.text();
+        console.log(`[TX] Mempool.space broadcast successful! TX Hash: ${txHash}`);
+
+        return {
+            success: true,
+            txHash: txHash,
+            source: 'mempool.space'
+        };
+    }
+
+    /**
+     * Broadcast via Blockstream.info (no API key required)
+     */
+    async _broadcastViaBlockstream(txHex) {
+        const url = 'https://blockstream.info/api/tx';
+
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: txHex
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || `HTTP ${response.status}`);
+        }
+
+        const txHash = await response.text();
+        console.log(`[TX] Blockstream broadcast successful! TX Hash: ${txHash}`);
+
+        return {
+            success: true,
+            txHash: txHash,
+            source: 'blockstream.info'
+        };
     }
 
     /**

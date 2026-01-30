@@ -1,8 +1,9 @@
 {
-  "btc": 7,
-  "eth": 8,
+  "btc": 9,
+  "eth": 9,
   "btc_test": 7,
   "eth_test": 0,
   "bcy_test": 12,
-  "beth": 15
+  "beth": 24,
+  "bcy": 2
 }

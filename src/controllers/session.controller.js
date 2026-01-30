@@ -18,9 +18,23 @@ export const getSession = async (req, res, next) => {
             });
         }
 
+        // Calculate payment ready status
+        // Payment is ready only if status is completed AND no partial payment issues
+        const isPaymentReady = session.status === 'completed' &&
+            !session.metadata?.partialPayment &&
+            !session.metadata?.amountMismatch;
+
+        // For sessions with partial payments, override status to 'detecting'
+        // This prevents production server from seeing 'completed' status
+        const displayStatus = session.metadata?.partialPayment ? 'detecting' : session.status;
+
         res.json({
             success: true,
-            data: session
+            data: {
+                ...session,
+                status: displayStatus,
+                paymentReady: isPaymentReady
+            }
         });
 
     } catch (error) {
@@ -34,7 +48,7 @@ export const getSession = async (req, res, next) => {
 export const getAllSessions = async (req, res, next) => {
     try {
         const { status, userId } = req.query;
-        
+
         let sessions = paymentSessionManager.getAllSessions();
 
         // Filter by status if provided

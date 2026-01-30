@@ -33,21 +33,30 @@ class JobService {
      */
     async checkPendingSessions() {
         try {
+            logger.info('[JobService] Starting session check...');
+
             const sessions = paymentSessionManager.getAllSessions();
             const activeSessions = sessions.filter(s =>
                 s.status === 'pending' || s.status === 'detected' || s.status === 'confirming'
             );
 
-            if (activeSessions.length === 0) return;
+            logger.info(`[JobService] Found ${activeSessions.length} active sessions to check`);
 
-            logger.debug(`[JobService] Checking ${activeSessions.length} active sessions...`);
+            if (activeSessions.length === 0) {
+                logger.debug('[JobService] No active sessions, skipping verification');
+            } else {
+                logger.debug(`[JobService] Checking ${activeSessions.length} active sessions...`);
 
-            for (const session of activeSessions) {
-                // If it has a TX hash, we can verify it directly
-                if (session.txHash) {
-                    await this.verifySession(session);
+                for (const session of activeSessions) {
+                    // If it has a TX hash, we can verify it directly
+                    if (session.txHash) {
+                        logger.debug(`[JobService] Verifying session ${session.id}...`);
+                        await this.verifySession(session);
+                    }
                 }
             }
+
+            logger.info('[JobService] Session check completed');
         } catch (error) {
             logger.error(`[JobService] Error in session polling: ${error.message}`);
         }

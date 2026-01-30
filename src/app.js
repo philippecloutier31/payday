@@ -11,6 +11,7 @@ import sessionRoutes from './routes/session.routes.js';
 import webhookRoutes from './routes/webhook.routes.js';
 import feeRoutes from './routes/fee.routes.js';
 import configRoutes from './routes/config.routes.js';
+import jobsRoutes from './routes/jobs.routes.js';
 import './services/forwarding.service.js'; // Initialize auto-forwarding
 
 // Import confirmation service for event handling
@@ -50,10 +51,18 @@ function registerPaymentEventHandlers() {
     confirmationService.on('onPaymentCompleted', async (data) => {
         logger.info(`[Event] Payment completed for session ${data.sessionId} - User: ${data.userId}, Amount: ${data.amount} ${data.cryptocurrency}, TX: ${data.txHash}`);
 
-        await notifyMainBackend({
-            ...data,
-            paymentStatus: 'completed'
-        });
+        // Only notify main backend for exact amounts (not under/over payments)
+        // Under/over payments still get forwarded but require manual handling
+        const isExactAmount = !data.metadata?.amountMismatch;
+
+        if (isExactAmount) {
+            await notifyMainBackend({
+                ...data,
+                paymentStatus: 'completed'
+            });
+        } else {
+            logger.info(`[Event] Skipping backend notification for ${data.metadata.amountMismatch} payment - requires manual review`);
+        }
     });
 
     logger.info('Payment event handlers registered');
@@ -143,6 +152,7 @@ app.use('/session', sessionRoutes);
 app.use('/webhook', webhookRoutes);
 app.use('/fees', feeRoutes);
 app.use('/config', configRoutes);
+app.use('/jobs', jobsRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -174,8 +184,12 @@ if (config.NODE_ENV !== 'test') {
         logger.info(`Webhook URL: ${config.WEBHOOK_BASE_URL}`);
 
         if (!config.BLOCKCYPHER_API_TOKEN) logger.warn('BLOCKCYPHER_API_TOKEN is not set!');
-        if (!config.BTC_MAIN_ADDRESS) logger.warn('BTC_MAIN_ADDRESS is not set!');
-        if (!config.ETH_MAIN_ADDRESS) logger.warn('ETH_MAIN_ADDRESS is not set!');
+        if (!config.getBtcMainAddress()) logger.warn('BTC_MAIN_ADDRESS is not set!');
+        if (!config.getEthMainAddress()) logger.warn('ETH_MAIN_ADDRESS is not set!');
+
+        // Show configured addresses
+        logger.info(`BTC Main Address: ${config.getBtcMainAddress() || 'Not configured'}`);
+        logger.info(`ETH Main Address: ${config.getEthMainAddress() || 'Not configured'}`);
     });
 }
 
