@@ -1,0 +1,101 @@
+[
+  {
+    "id": "59bb531d-c2bb-45fe-bd5d-ad145cec5215",
+    "userId": "6948edf5373ba9848d48f941",
+    "cryptocurrency": "eth",
+    "paymentAddress": "0x55756d5e6dF566C22cBc40cC3A4eE53E28da29d6",
+    "forwardingAddress": "0x170444cc014c8EC8e922F7FAbd83Ec85f8F3b5C7",
+    "forwardingId": null,
+    "webhookId": "94587418-9d00-4be4-a198-e15e912986bb",
+    "expectedAmount": 0.0020849056997152018,
+    "receivedAmount": null,
+    "status": "cancelled",
+    "confirmations": 0,
+    "requiredConfirmations": 3,
+    "txHash": null,
+    "blockHeight": null,
+    "addressIndex": 14,
+    "metadata": {
+      "userEmail": "jmsronni@gmail.com",
+      "userName": "testmail",
+      "amountUSD": 5,
+      "addressSource": "local_hd_wallet"
+    },
+    "createdAt": "2026-01-31T17:48:44.073Z",
+    "updatedAt": "2026-01-31T17:48:56.838Z",
+    "expiresAt": "2026-02-01T03:48:44.073Z",
+    "detectedAt": null,
+    "confirmedAt": null,
+    "completedAt": null,
+    "transactionHistory": [],
+    "cancelledAt": "2026-01-31T17:48:56.838Z"
+  },
+  {
+    "id": "27ed1d3e-4216-4cfd-aa25-9a2c8b886014",
+    "userId": "68dbc4a9952ed094a434797c",
+    "cryptocurrency": "eth",
+    "paymentAddress": "0xD4243662784bc4e2384eF83497f7D4A46363221d",
+    "forwardingAddress": "0x170444cc014c8EC8e922F7FAbd83Ec85f8F3b5C7",
+    "forwardingId": null,
+    "webhookId": "43c21768-de33-49ee-8304-88fb6bad5efa",
+    "expectedAmount": 0.0016731711193933082,
+    "receivedAmount": 0.001673,
+    "status": "completed",
+    "confirmations": 3,
+    "requiredConfirmations": 3,
+    "txHash": "7a6963d733cc46e994925f72cd2993ae712caa450eef6709ae0a851240e5bf70",
+    "blockHeight": 24362421,
+    "addressIndex": 15,
+    "metadata": {
+      "userEmail": "admin@example.com",
+      "userName": "Admin",
+      "amountUSD": 4,
+      "addressSource": "local_hd_wallet",
+      "autoForwarded": true,
+      "forwardedAt": "2026-02-01T13:50:37.323Z",
+      "forwardingTxHash": "0xaf5c5d67c12420461cb6ca4ad94514e7f73ba8e79e47e6baf2093f950ef55c5a",
+      "forwardedAmount": 0.0016715,
+      "feeRemaining": 0,
+      "feeTaken": false,
+      "feePercentage": 0,
+      "networkFees": 0.000004189375785,
+      "networkFeeDeducted": true,
+      "originalAmount": 0.001673
+    },
+    "createdAt": "2026-02-01T13:49:01.952Z",
+    "updatedAt": "2026-02-01T13:50:37.323Z",
+    "expiresAt": "2026-02-01T23:49:01.952Z",
+    "detectedAt": null,
+    "confirmedAt": "2026-02-01T13:50:25.560Z",
+    "completedAt": "2026-02-01T13:50:25.566Z",
+    "transactionHistory": [
+      {
+        "timestamp": "2026-02-01T13:50:03.687Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 24362421
+      },
+      {
+        "timestamp": "2026-02-01T13:50:15.098Z",
+        "type": "confirmation_update",
+        "confirmations": 2,
+        "blockHeight": 24362421
+      },
+      {
+        "timestamp": "2026-02-01T13:50:25.560Z",
+        "type": "confirmation_update",
+        "confirmations": 3,
+        "blockHeight": 24362421
+      },
+      {
+        "timestamp": "2026-02-01T13:50:25.567Z",
+        "type": "payment_completed",
+        "finalAmount": 0.001673,
+        "finalConfirmations": 3,
+        "txHash": "7a6963d733cc46e994925f72cd2993ae712caa450eef6709ae0a851240e5bf70"
+      }
+    ],
+    "finalAmount": 0.001673,
+    "finalConfirmations": 3
+  }
+]

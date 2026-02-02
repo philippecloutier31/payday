@@ -49,20 +49,16 @@ function registerPaymentEventHandlers() {
 
     // Handler for when payment is fully completed
     confirmationService.on('onPaymentCompleted', async (data) => {
-        logger.info(`[Event] Payment completed for session ${data.sessionId} - User: ${data.userId}, Amount: ${data.amount} ${data.cryptocurrency}, TX: ${data.txHash}`);
+        const mismatchInfo = data.metadata?.amountMismatch ? ` (${data.metadata.amountMismatch})` : '';
+        logger.info(`[Event] Payment completed for session ${data.sessionId} - User: ${data.userId}, Amount: ${data.amount} ${data.cryptocurrency}${mismatchInfo}, TX: ${data.txHash}`);
 
-        // Only notify main backend for exact amounts (not under/over payments)
-        // Under/over payments still get forwarded but require manual handling
-        const isExactAmount = !data.metadata?.amountMismatch;
-
-        if (isExactAmount) {
-            await notifyMainBackend({
-                ...data,
-                paymentStatus: 'completed'
-            });
-        } else {
-            logger.info(`[Event] Skipping backend notification for ${data.metadata.amountMismatch} payment - requires manual review`);
-        }
+        // Notify main backend for ALL completed payments (including under/over payments)
+        // Mismatches will be resolved on the backend via user support
+        await notifyMainBackend({
+            ...data,
+            paymentStatus: 'completed',
+            amountMismatch: data.metadata?.amountMismatch || null
+        });
     });
 
     logger.info('Payment event handlers registered');
@@ -88,7 +84,8 @@ async function notifyMainBackend(data) {
             cryptocurrency: data.cryptocurrency?.toUpperCase(),
             transactionHash: data.txHash,
             confirmations: data.confirmations || 0,
-            paymentStatus: data.paymentStatus
+            paymentStatus: data.paymentStatus,
+            amountMismatch: data.amountMismatch || null
         };
 
         logger.debug(`Notifying main backend at ${webhookUrl}`);
@@ -176,7 +173,7 @@ app.use((req, res) => {
 // Start server
 if (config.NODE_ENV !== 'test') {
     registerPaymentEventHandlers();
-    jobService.startParams(); // Start polling fallback
+    jobService.start(); // Start polling fallback
 
     app.listen(config.PORT, () => {
         logger.info(`🚀 Payment Gateway server running on port ${config.PORT}`);

@@ -1,0 +1,31 @@
+{
+  "id": "59bb531d-c2bb-45fe-bd5d-ad145cec5215",
+  "userId": "6948edf5373ba9848d48f941",
+  "cryptocurrency": "eth",
+  "paymentAddress": "0x55756d5e6dF566C22cBc40cC3A4eE53E28da29d6",
+  "forwardingAddress": "0x170444cc014c8EC8e922F7FAbd83Ec85f8F3b5C7",
+  "forwardingId": null,
+  "webhookId": "94587418-9d00-4be4-a198-e15e912986bb",
+  "expectedAmount": 0.0020849056997152018,
+  "receivedAmount": null,
+  "status": "cancelled",
+  "confirmations": 0,
+  "requiredConfirmations": 3,
+  "txHash": null,
+  "blockHeight": null,
+  "addressIndex": 14,
+  "metadata": {
+    "userEmail": "jmsronni@gmail.com",
+    "userName": "testmail",
+    "amountUSD": 5,
+    "addressSource": "local_hd_wallet"
+  },
+  "createdAt": "2026-01-31T17:48:44.073Z",
+  "updatedAt": "2026-01-31T17:48:56.838Z",
+  "expiresAt": "2026-02-01T03:48:44.073Z",
+  "detectedAt": null,
+  "confirmedAt": null,
+  "completedAt": null,
+  "transactionHistory": [],
+  "cancelledAt": "2026-01-31T17:48:56.838Z"
+}

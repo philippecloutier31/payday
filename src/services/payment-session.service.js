@@ -82,8 +82,11 @@ class PaymentSessionManager {
                 const data = JSON.parse(content);
 
                 for (const session of data) {
-                    // Only load non-expired sessions
-                    if (new Date(session.expiresAt) > new Date() || session.status === 'completed') {
+                    // Load sessions that are not expired, OR are completed, OR are in a state that might need action (confirmed/confirming)
+                    const isExpired = new Date(session.expiresAt) <= new Date();
+                    const needsAction = ['confirmed', 'confirming', 'detected'].includes(session.status);
+
+                    if (!isExpired || session.status === 'completed' || needsAction) {
                         this.sessions.set(session.id, session);
                         this.addressIndex.set(session.paymentAddress.toLowerCase(), session.id);
 

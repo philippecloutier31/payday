@@ -1,0 +1,68 @@
+{
+  "id": "8b511b83-2532-4c38-8ac2-97ec30044ded",
+  "userId": "68dbc4a9952ed094a434797c",
+  "cryptocurrency": "btc",
+  "paymentAddress": "bc1q4r557zs6wljcr5gynxgadzryydhmaauuya2hlg",
+  "forwardingAddress": "12CuKENGce2WQevWVf4NhzJa1DRr8Ah67N",
+  "forwardingId": null,
+  "webhookId": "ebd4e627-dc37-49c6-8b93-db16eba9cf05",
+  "expectedAmount": 0.00006048728557257265,
+  "receivedAmount": 0.00006064,
+  "status": "completed",
+  "confirmations": 1,
+  "requiredConfirmations": 1,
+  "txHash": "72f9987f6bc384684d00ac656ef5d2f602dc99d97f006c848f58d1d305f7ddcd",
+  "blockHeight": 934325,
+  "addressIndex": 13,
+  "metadata": {
+    "userEmail": "admin@example.com",
+    "userName": "Admin",
+    "amountUSD": 5,
+    "addressSource": "local_hd_wallet",
+    "partialPayment": true,
+    "partialPaymentAmount": 0.04221792,
+    "partialPaymentAt": "2026-01-30T09:05:58.024Z",
+    "correctedAmount": true,
+    "originalErrorAmount": 0.04221792,
+    "autoForwarded": true,
+    "forwardedAt": "2026-01-31T16:09:41.466Z",
+    "forwardingTxHash": "1bf6acc5e842ed29774f3590d34eba2cac2c3942c92a651ccdf41da5adf6f1ce",
+    "forwardedAmount": 0.0000584,
+    "feeRemaining": 0,
+    "feeTaken": false,
+    "feePercentage": 0,
+    "networkFees": 0.00000224,
+    "networkFeeDeducted": true,
+    "originalAmount": 0.00006064
+  },
+  "createdAt": "2026-01-30T08:54:00.936Z",
+  "updatedAt": "2026-01-31T16:09:41.466Z",
+  "expiresAt": "2026-01-30T18:54:00.936Z",
+  "detectedAt": "2026-01-30T08:55:04.076Z",
+  "confirmedAt": "2026-01-30T09:05:57.983Z",
+  "completedAt": "2026-01-31T16:09:40.510Z",
+  "transactionHistory": [
+    {
+      "timestamp": "2026-01-30T08:55:04.076Z",
+      "type": "payment_detected",
+      "txHash": "72f9987f6bc384684d00ac656ef5d2f602dc99d97f006c848f58d1d305f7ddcd",
+      "amount": 0.04221792,
+      "confirmations": 0
+    },
+    {
+      "timestamp": "2026-01-30T09:05:57.983Z",
+      "type": "confirmation_update",
+      "confirmations": 1,
+      "blockHeight": 934325
+    },
+    {
+      "timestamp": "2026-01-31T16:09:40.510Z",
+      "type": "payment_completed",
+      "finalAmount": 0.00006064,
+      "finalConfirmations": 1,
+      "txHash": "72f9987f6bc384684d00ac656ef5d2f602dc99d97f006c848f58d1d305f7ddcd"
+    }
+  ],
+  "finalAmount": 0.00006064,
+  "finalConfirmations": 1
+}

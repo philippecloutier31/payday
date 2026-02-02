@@ -13,11 +13,19 @@ class JobService {
         this.intervalId = null;
     }
 
-    startParams() {
-        if (this.intervalId) return;
+    start() {
+        if (this.intervalId) {
+            logger.warn('[JobService] Already running, skipping start');
+            return;
+        }
 
         logger.info('[JobService] Starting background polling service...');
-        this.intervalId = setInterval(() => this.checkPendingSessions(), this.checkInterval);
+        logger.info(`[JobService] Check interval: ${this.checkInterval}ms`);
+        this.intervalId = setInterval(() => {
+            logger.info('[JobService] ⏰ Interval fired - starting check...');
+            this.checkPendingSessions();
+        }, this.checkInterval);
+        logger.info('[JobService] Interval scheduled successfully');
     }
 
     stop() {

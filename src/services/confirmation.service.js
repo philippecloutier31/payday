@@ -78,7 +78,8 @@ class ConfirmationService {
             total,
             received,
             blockHeight,
-            rawPayload
+            rawPayload,
+            inputs // Inputs from the transaction (for detecting outgoing sweeps)
         } = txData;
 
         console.log(`Processing transaction for session ${sessionId}`);
@@ -102,6 +103,18 @@ class ConfirmationService {
                 success: true,
                 message: `Session already in terminal state: ${session.status}`,
                 status: session.status
+            };
+        }
+
+        // DETECT OUTGOING SWEEP TRANSACTIONS
+        // If the payment address appears in inputs but NOT in outputs, it's an outgoing transaction
+        const isOutgoingTransaction = this.isOutgoingTransaction(session.paymentAddress, inputs, outputs);
+        if (isOutgoingTransaction) {
+            console.log(`[SKIP] Transaction ${txHash} is an outgoing sweep from ${session.paymentAddress} - skipping session update`);
+            return {
+                success: true,
+                status: 'skipped',
+                message: 'Outgoing sweep transaction - not processed as incoming payment'
             };
         }
 
@@ -140,29 +153,70 @@ class ConfirmationService {
         const isBitcoinLike = session.cryptocurrency.startsWith('btc') || session.cryptocurrency.startsWith('bcy');
         const divisor = isBitcoinLike ? 1e8 : 1e18;
 
-        // BlockCypher 'received' can be a timestamp string OR a number (amount)
-        // If it's a number, it's the most reliable direct amount
+        // 1. Specifically matching outputs is the MOST reliable way to know what was sent to OUR address
+        if (outputs && Array.isArray(outputs)) {
+            let totalReceived = 0;
+            let foundMatch = false;
+            for (const output of outputs) {
+                if (output.addresses && output.addresses.includes(session.paymentAddress)) {
+                    totalReceived += output.value || 0;
+                    foundMatch = true;
+                }
+            }
+            if (foundMatch) {
+                return totalReceived / divisor;
+            }
+        }
+
+        // 2. Fallback to 'received' field if it's a number (specific to the address in some BlockCypher API contexts)
         if (typeof received === 'number') {
             return received / divisor;
         }
 
-        // If 'received' is a timestamp string, use the 'total' field or calculate from outputs
+        // 3. Last resort - 'total' field (WARNING: in many webhooks this is total tx value, not address specific)
         if (typeof total === 'number' && total > 0) {
             return total / divisor;
         }
 
-        // Otherwise, calculate from specifically matching outputs
-        if (outputs && Array.isArray(outputs)) {
-            let totalReceived = 0;
-            for (const output of outputs) {
-                if (output.addresses && output.addresses.includes(session.paymentAddress)) {
-                    totalReceived += output.value || 0;
+        return 0;
+    }
+
+    /**
+     * Detect if a transaction is outgoing (sweep) vs incoming (payment)
+     * 
+     * A sweep transaction has the payment address in inputs but NOT in outputs.
+     * An incoming payment has the payment address in outputs.
+     * 
+     * @param {string} paymentAddress - The session's payment address
+     * @param {Array} inputs - Transaction inputs
+     * @param {Array} outputs - Transaction outputs
+     * @returns {boolean} True if this is an outgoing sweep transaction
+     */
+    isOutgoingTransaction(paymentAddress, inputs, outputs) {
+        // Check if address appears in inputs
+        let addressInInputs = false;
+        if (inputs && Array.isArray(inputs)) {
+            for (const input of inputs) {
+                if (input.addresses && input.addresses.includes(paymentAddress)) {
+                    addressInInputs = true;
+                    break;
                 }
             }
-            return totalReceived / divisor;
         }
 
-        return 0;
+        // Check if address appears in outputs
+        let addressInOutputs = false;
+        if (outputs && Array.isArray(outputs)) {
+            for (const output of outputs) {
+                if (output.addresses && output.addresses.includes(paymentAddress)) {
+                    addressInOutputs = true;
+                    break;
+                }
+            }
+        }
+
+        // If address is in inputs but NOT in outputs, it's an outgoing transaction
+        return addressInInputs && !addressInOutputs;
     }
 
     /**
@@ -286,53 +340,25 @@ class ConfirmationService {
         console.log(`Payment confirmed for session ${session.id}!`);
         console.log(`Amount: ${amount} ${session.cryptocurrency.toUpperCase()}`);
 
-        // Validate amount matches expected (no tolerance - exact amount only)
+        // Validate amount matches expected (2% tolerance for exchange rate fluctuations)
         if (session.expectedAmount && session.expectedAmount > 0) {
-            const amountMatch = this.checkAmountMatch(session.expectedAmount, amount, 0);
+            const amountMatch = this.checkAmountMatch(session.expectedAmount, amount, 0.02);
 
             if (!amountMatch.match) {
-                const status = amountMatch.overpaid ? 'overpaid' : 'underpaid';
-                console.warn(`[Confirmation] Payment ${status} for session ${session.id}: expected ${session.expectedAmount}, got ${amount}`);
+                const mismatchType = amountMatch.overpaid ? 'overpaid' : 'underpaid';
+                console.warn(`[Confirmation] Amount mismatch (${mismatchType}) for session ${session.id}: expected ${session.expectedAmount}, got ${amount}`);
 
-                // Update session with received amount but keep in confirming state
-                // Wait for another transaction with exact amount
-                paymentSessionManager.updateSession(session.id, {
+                // Proceed with completion but mark as mismatched
+                session.metadata = {
+                    ...session.metadata,
+                    amountMismatch: mismatchType,
+                    expectedAmount: session.expectedAmount,
                     receivedAmount: amount,
-                    metadata: {
-                        ...session.metadata,
-                        partialPayment: true,
-                        partialPaymentAmount: amount,
-                        partialPaymentAt: new Date().toISOString()
-                    }
-                });
-
-                // Emit event for manual handling (don't complete the session)
-                await this.emit(`onPayment${status.charAt(0).toUpperCase() + status.slice(1)}`, {
-                    sessionId: session.id,
-                    userId: session.userId,
-                    txHash,
-                    confirmations,
-                    amount,
-                    expectedAmount: session.expectedAmount,
-                    cryptocurrency: session.cryptocurrency,
-                    paymentAddress: session.paymentAddress,
-                    metadata: session.metadata
-                });
-
-                console.log(`[Confirmation] Waiting for exact amount. Received: ${amount}, Expected: ${session.expectedAmount}`);
-
-                return {
-                    success: false,
-                    status: 'waiting_exact_amount',
-                    error: `Amount ${amount} does not match expected ${session.expectedAmount}. Session still waiting for exact amount.`,
-                    txHash,
-                    amount,
-                    expectedAmount: session.expectedAmount,
-                    sessionId: session.id
+                    mismatchAt: new Date().toISOString()
                 };
+            } else {
+                console.log(`[Confirmation] Amount verified: ${amount} (exact match)`);
             }
-
-            console.log(`[Confirmation] Amount verified: ${amount} (exact match)`);
         }
 
         // Emit confirmed event
@@ -445,10 +471,10 @@ class ConfirmationService {
      * 
      * @param {number} expected - Expected amount
      * @param {number} received - Received amount
-     * @param {number} tolerance - Tolerance percentage (default: 1%)
+     * @param {number} tolerance - Tolerance percentage (default: 2%)
      * @returns {Object} Match result
      */
-    checkAmountMatch(expected, received, tolerance = 0) {
+    checkAmountMatch(expected, received, tolerance = 0.02) {
         if (!expected || expected <= 0) {
             // No expected amount set, any amount is valid
             return {
@@ -462,9 +488,9 @@ class ConfirmationService {
         const difference = received - expected;
         const differencePercent = Math.abs(difference) / expected;
 
-        // Only accept exact amount - no tolerance for underpayment or overpayment
-        // Overpayments will be handled manually on the backend
-        const match = received >= expected && differencePercent <= tolerance;
+        // Match is true if the difference is within the tolerance threshold
+        // (Handles both underpayments and overpayments)
+        const match = differencePercent <= tolerance;
 
         return {
             match,
