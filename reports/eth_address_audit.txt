@@ -1,0 +1,58 @@
+=== ETH ADDRESS AUDIT ===
+
+Found 6 completed ETH sessions
+
+Session: 228a5adc
+Address: 0x2EF0F0408dc54C2e464949F149daE96E9B38561b
+Index: 7
+Received: 0.00110000 ETH
+Current Balance: 0.00000000 ETH
+Total Sent: 0.00110000 ETH
+Forward Recorded: YES
+Forward TX: 0x160cda3651d004ffea0e59a69c1b7f92f8b3ab54a04c278ebe403f95ea8feb2c
+Status: FORWARDED
+
+Session: 44085920
+Address: 0xebc86C93F010d713B60bE1FA9a9F580dCA60a38A
+Index: 8
+Received: 0.00088700 ETH
+Current Balance: 0.00000000 ETH
+Total Sent: 0.00088700 ETH
+Forward Recorded: YES
+Forward TX: 0xdd0361daa1a5cd14089136b2d9a842c2a42b50942cdf7995efed3382eb95b19e
+Status: FORWARDED
+
+Session: 27ed1d3e
+Address: 0xD4243662784bc4e2384eF83497f7D4A46363221d
+Index: 15
+Received: 0.00167300 ETH
+Current Balance: 0.00000000 ETH
+Total Sent: 0.00167300 ETH
+Forward Recorded: YES
+Forward TX: 0xaf5c5d67c12420461cb6ca4ad94514e7f73ba8e79e47e6baf2093f950ef55c5a
+Status: FORWARDED
+
+Session: 9f699e38
+Address: 0x691780a431486dBf1223524664f3416Cfd49b319
+Index: 20
+Received: 0.00180000 ETH
+Current Balance: 0.00000000 ETH
+Total Sent: 0.00200000 ETH
+Forward Recorded: YES
+Forward TX: N/A
+Status: FORWARDED
+
+Session: d4637884
+Address: 0x020D2011aE45A135193198fD1a3f7a8A47EdFA27
+Index: 25
+Received: 0.27942715 ETH
+Current Balance: 0.00000000 ETH
+Total Sent: 0.27942715 ETH
+Forward Recorded: NO
+Forward TX: N/A
+Status: FORWARDED
+
+
+=== SUMMARY ===
+Total Received: 0.28488715 ETH ($598.26)
+Still in Addresses: 0.00000000 ETH ($0.00)

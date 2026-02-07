@@ -1,0 +1,26 @@
+Session ID: d4637884-47d4-4ce4-8a64-f1012476ae63
+Crypto: eth
+Expected: 0.2593535139238289
+Received: null
+Final: null
+Status: completed
+Metadata: {
+  "userEmail": "tripplertraveller13@gmail.com",
+  "userName": "Robert John Taylor",
+  "amountUSD": 533,
+  "addressSource": "local_hd_wallet"
+}
+---
+Session ID: a216a068-eae6-4a8a-8fb6-9781255e79a8
+Crypto: eth
+Expected: 0.0031180007379268413
+Received: 0
+Final: 0
+Status: completed
+Metadata: {
+  "userEmail": "martauthor@googlemail.com",
+  "userName": "Marcin  Pasztelan",
+  "amountUSD": 6,
+  "addressSource": "local_hd_wallet"
+}
+---

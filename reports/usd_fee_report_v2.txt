@@ -1,0 +1,11 @@
+--- DETAILED FEE AUDIT (USD) ---
+ID | CRYPTO | AMOUNT | USD_VAL | FEE_USD
+---|--------|--------|---------|---------
+79cc6879 | BCY | 0.146384 | $8000.00 | $200.00
+d4637884 | ETH | 0.279427 | $533.00 | $13.33
+b701e4f5 | BTC | 0.020126 | $1500.00 | $48.44
+
+--- TOTALS ---
+BTC Fees: $248.44
+ETH Fees: $13.33
+GRAND TOTAL: $261.77

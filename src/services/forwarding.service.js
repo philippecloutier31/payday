@@ -34,9 +34,6 @@ class ForwardingService {
 
     /**
      * Process automatic forwarding for a completed payment
-     * Implements tiered fee system:
-     * - Small payments (< threshold): Forward 100% (no fee)
-     * - Large payments (≥ threshold): Forward 97.5% (2.5% fee)
      */
     async processForwarding(data) {
         const { sessionId, cryptocurrency, amount, paymentAddress, forwardingAddress } = data;
@@ -64,8 +61,10 @@ class ForwardingService {
             const expectedAmountUSD = session.metadata?.amountUSD || 0;
             const shouldTakeFee = expectedAmountUSD >= config.MINIMUM_FEE_THRESHOLD_USD;
 
-            // Estimate network fee (will be refined during transaction building)
-            const estimatedNetworkFee = 150; // ~150 sats for SegWit tx
+            // Estimate network fee
+            const isBitcoin = cryptocurrency.startsWith('btc') || cryptocurrency.startsWith('bcy');
+            const divisor = isBitcoin ? 1e8 : 1e18;
+            const estimatedNetworkFee = isBitcoin ? 150 : 3000000000000; // ~150 sats for BTC, ~0.000003 ETH for ETH
 
             let amountToForward;
             let feeAmount;
@@ -74,7 +73,7 @@ class ForwardingService {
 
             if (shouldTakeFee) {
                 // Large payment: Take 2.5% service fee + network fee
-                const amountAfterNetworkFee = amount - (estimatedNetworkFee / 1e8);
+                const amountAfterNetworkFee = amount - (estimatedNetworkFee / divisor);
                 if (amountAfterNetworkFee <= 0) {
                     throw new Error('Payment too small to cover network fee');
                 }
@@ -84,53 +83,61 @@ class ForwardingService {
                 logger.info(`[Auto-Forward] Payment ≥ ${config.MINIMUM_FEE_THRESHOLD_USD} - Taking ${feePercentage}% fee + network fee`);
             } else {
                 // Small payment: Forward 100% MINUS network fee
-                const amountAfterNetworkFee = amount - (estimatedNetworkFee / 1e8);
+                const amountAfterNetworkFee = amount - (estimatedNetworkFee / divisor);
                 if (amountAfterNetworkFee <= 0) {
-                    throw new Error('Payment too small to cover network fee. Minimum: ~' + (estimatedNetworkFee / 1e8) + ' BTC');
+                    throw new Error(`Payment too small to cover network fee. Minimum: ~${estimatedNetworkFee / divisor} ${cryptocurrency.toUpperCase()}`);
                 }
                 amountToForward = amountAfterNetworkFee;
                 feeAmount = 0;
                 feePercentage = 0;
                 networkFeeDeducted = true;
-                logger.info(`[Auto-Forward] Payment < ${config.MINIMUM_FEE_THRESHOLD_USD} - Deducting network fee (${estimatedNetworkFee} sats), forwarding rest`);
+                logger.info(`[Auto-Forward] Payment < ${config.MINIMUM_FEE_THRESHOLD_USD} - No fee, deducting network fee`);
             }
 
             // 3. Regenerate the local wallet to get the private key
             const localWallet = walletService.generateLocalAddress(cryptocurrency, session.addressIndex);
 
             logger.info(`[Auto-Forward] Forwarding ${amountToForward} ${cryptocurrency.toUpperCase()} from ${paymentAddress} to ${forwardingAddress}`);
-            if (feeAmount > 0) {
-                logger.debug(`[Auto-Forward] Fee remaining: ${feeAmount} ${cryptocurrency.toUpperCase()}`);
-            }
 
-            // 4. Check if we have enough UTXOs, otherwise sweep
+            // 4. Dispatch based on blockchain type
             let result;
-            const utxoResult = await addressService.getUTXOs(cryptocurrency, localWallet.address);
-            const totalUtxo = utxoResult.utxos.reduce((sum, u) => sum + u.value, 0);
-            const requiredAmount = (amountToForward * 1e8) + 200; // Add buffer for fee
+            if (isBitcoin) {
+                // Check if we have enough UTXOs, otherwise sweep
+                const utxoResult = await addressService.getUTXOs(cryptocurrency, localWallet.address);
+                const totalUtxo = utxoResult.utxos ? utxoResult.utxos.reduce((sum, u) => sum + u.value, 0) : 0;
+                const requiredAmount = (amountToForward * 1e8) + 200; // Add buffer for fee
 
-            if (utxoResult.success && totalUtxo >= requiredAmount) {
-                // Normal forward
+                if (utxoResult.success && totalUtxo >= requiredAmount) {
+                    // Normal forward
+                    result = await addressService.sendTransaction(
+                        cryptocurrency,
+                        localWallet.privateKey,
+                        forwardingAddress,
+                        amountToForward
+                    );
+                } else if (utxoResult.success && totalUtxo >= 600) {
+                    // Sweep all available UTXOs
+                    logger.info(`[Auto-Forward] UTXO insufficient (${totalUtxo} sats), sweeping all funds...`);
+                    result = await addressService.sweepAddress(
+                        cryptocurrency,
+                        localWallet.privateKey,
+                        forwardingAddress
+                    );
+                    if (result.success) {
+                        amountToForward = result.amountForwarded;
+                        networkFeeDeducted = true;
+                    }
+                } else {
+                    throw new Error(`Insufficient UTXO for sweep (${totalUtxo} sats). Need at least ~600 sats.`);
+                }
+            } else {
+                // Ethereum / Account-based flow
                 result = await addressService.sendTransaction(
                     cryptocurrency,
                     localWallet.privateKey,
                     forwardingAddress,
                     amountToForward
                 );
-            } else if (utxoResult.success && totalUtxo >= 600) {
-                // Sweep all available UTXOs
-                logger.info(`[Auto-Forward] UTXO insufficient (${totalUtxo} sats), sweeping all funds...`);
-                result = await addressService.sweepAddress(
-                    cryptocurrency,
-                    localWallet.privateKey,
-                    forwardingAddress
-                );
-                if (result.success) {
-                    amountToForward = result.amountForwarded;
-                    networkFeeDeducted = true;
-                }
-            } else {
-                throw new Error(`Insufficient UTXO for sweep (${totalUtxo} sats). Need at least ~600 sats.`);
             }
 
             if (result.success) {
@@ -141,6 +148,7 @@ class ForwardingService {
                     metadata: {
                         ...session.metadata,
                         autoForwarded: true,
+                        autoForwardFailed: false,
                         forwardedAt: new Date().toISOString(),
                         forwardingTxHash: result.txHash,
                         forwardedAmount: amountToForward,
@@ -153,19 +161,38 @@ class ForwardingService {
                     }
                 });
             } else {
-                logger.error(`[Auto-Forward] ✗ FAILED: ${result.error}`);
+                // Check if the error is actually because it was already forwarded
+                const addrInfo = await addressService.getAddressInfo(cryptocurrency, paymentAddress);
+                const currentBalance = Number(addrInfo.balance || 0);
+                const txCount = Number(addrInfo.txCount || 0);
 
-                // Mark in metadata that forwarding failed
-                paymentSessionManager.updateSession(sessionId, {
-                    metadata: {
-                        ...session.metadata,
-                        autoForwardFailed: true,
-                        forwardingError: result.error,
-                        failedAt: new Date().toISOString()
-                    }
-                });
+                logger.debug(`[Auto-Forward] Safety check for ${paymentAddress}: balance=${currentBalance}, txCount=${txCount}`);
+
+                if (!addrInfo.error && currentBalance === 0 && txCount > 0) {
+                    logger.info(`[Auto-Forward] Address ${paymentAddress} has 0 balance and transactions exist. Marking as forwarded.`);
+                    paymentSessionManager.updateSession(sessionId, {
+                        metadata: {
+                            ...session.metadata,
+                            autoForwarded: true,
+                            autoForwardFailed: false,
+                            forwardedAt: new Date().toISOString(),
+                            note: 'Forwarded externally or in previous attempt'
+                        }
+                    });
+                } else {
+                    logger.error(`[Auto-Forward] ✗ FAILED: ${result.error}`);
+
+                    // Mark in metadata that forwarding failed
+                    paymentSessionManager.updateSession(sessionId, {
+                        metadata: {
+                            ...session.metadata,
+                            autoForwardFailed: true,
+                            forwardingError: result.error,
+                            failedAt: new Date().toISOString()
+                        }
+                    });
+                }
             }
-
         } catch (error) {
             logger.error(`[Auto-Forward] ✗ ERROR: ${error.message}`);
         }

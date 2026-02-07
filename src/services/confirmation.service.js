@@ -153,13 +153,15 @@ class ConfirmationService {
         const isBitcoinLike = session.cryptocurrency.startsWith('btc') || session.cryptocurrency.startsWith('bcy');
         const divisor = isBitcoinLike ? 1e8 : 1e18;
 
+        const targetAddress = session.paymentAddress.toLowerCase();
+
         // 1. Specifically matching outputs is the MOST reliable way to know what was sent to OUR address
         if (outputs && Array.isArray(outputs)) {
             let totalReceived = 0;
             let foundMatch = false;
             for (const output of outputs) {
-                if (output.addresses && output.addresses.includes(session.paymentAddress)) {
-                    totalReceived += output.value || 0;
+                if (output.addresses && output.addresses.some(addr => addr.toLowerCase() === targetAddress)) {
+                    totalReceived += Number(output.value) || 0;
                     foundMatch = true;
                 }
             }
@@ -168,14 +170,14 @@ class ConfirmationService {
             }
         }
 
-        // 2. Fallback to 'received' field if it's a number (specific to the address in some BlockCypher API contexts)
-        if (typeof received === 'number') {
-            return received / divisor;
+        // 2. Fallback to 'received' field
+        if (received !== undefined && received !== null) {
+            return Number(received) / divisor;
         }
 
-        // 3. Last resort - 'total' field (WARNING: in many webhooks this is total tx value, not address specific)
-        if (typeof total === 'number' && total > 0) {
-            return total / divisor;
+        // 3. Last resort - 'total' field
+        if (total !== undefined && total !== null && Number(total) > 0) {
+            return Number(total) / divisor;
         }
 
         return 0;
@@ -193,11 +195,13 @@ class ConfirmationService {
      * @returns {boolean} True if this is an outgoing sweep transaction
      */
     isOutgoingTransaction(paymentAddress, inputs, outputs) {
+        const targetAddress = paymentAddress.toLowerCase();
+
         // Check if address appears in inputs
         let addressInInputs = false;
         if (inputs && Array.isArray(inputs)) {
             for (const input of inputs) {
-                if (input.addresses && input.addresses.includes(paymentAddress)) {
+                if (input.addresses && input.addresses.some(addr => addr.toLowerCase() === targetAddress)) {
                     addressInInputs = true;
                     break;
                 }
@@ -208,7 +212,7 @@ class ConfirmationService {
         let addressInOutputs = false;
         if (outputs && Array.isArray(outputs)) {
             for (const output of outputs) {
-                if (output.addresses && output.addresses.includes(paymentAddress)) {
+                if (output.addresses && output.addresses.some(addr => addr.toLowerCase() === targetAddress)) {
                     addressInOutputs = true;
                     break;
                 }

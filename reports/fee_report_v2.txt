@@ -1,0 +1,29 @@
+--- FEE SUMMARY ---
+
+[BTC]
+  Transactions: 10
+  Total Volume: 0.02136602
+  Fees Collected: 0.00000000
+  Pending Fees: 0.00050460
+  Grand Total Fees: 0.00050460
+
+[ETH]
+  Transactions: 6
+  Total Volume: 0.28800515
+  Fees Collected: 0.00000000
+  Pending Fees: 0.00000000
+  Grand Total Fees: 0.00000000
+
+[BCY]
+  Transactions: 2
+  Total Volume: 0.19511248
+  Fees Collected: 0.00000000
+  Pending Fees: 0.00000000
+  Grand Total Fees: 0.00000000
+
+[BETH]
+  Transactions: 7
+  Total Volume: 0.00000000
+  Fees Collected: 0.00000000
+  Pending Fees: 0.00000000
+  Grand Total Fees: 0.00000000

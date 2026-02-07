@@ -881,37 +881,6 @@
     "finalConfirmations": 1
   },
   {
-    "id": "59bb531d-c2bb-45fe-bd5d-ad145cec5215",
-    "userId": "6948edf5373ba9848d48f941",
-    "cryptocurrency": "eth",
-    "paymentAddress": "0x55756d5e6dF566C22cBc40cC3A4eE53E28da29d6",
-    "forwardingAddress": "0x170444cc014c8EC8e922F7FAbd83Ec85f8F3b5C7",
-    "forwardingId": null,
-    "webhookId": "94587418-9d00-4be4-a198-e15e912986bb",
-    "expectedAmount": 0.0020849056997152018,
-    "receivedAmount": null,
-    "status": "cancelled",
-    "confirmations": 0,
-    "requiredConfirmations": 3,
-    "txHash": null,
-    "blockHeight": null,
-    "addressIndex": 14,
-    "metadata": {
-      "userEmail": "jmsronni@gmail.com",
-      "userName": "testmail",
-      "amountUSD": 5,
-      "addressSource": "local_hd_wallet"
-    },
-    "createdAt": "2026-01-31T17:48:44.073Z",
-    "updatedAt": "2026-01-31T17:48:56.838Z",
-    "expiresAt": "2026-02-01T03:48:44.073Z",
-    "detectedAt": null,
-    "confirmedAt": null,
-    "completedAt": null,
-    "transactionHistory": [],
-    "cancelledAt": "2026-01-31T17:48:56.838Z"
-  },
-  {
     "id": "27ed1d3e-4216-4cfd-aa25-9a2c8b886014",
     "userId": "68dbc4a9952ed094a434797c",
     "cryptocurrency": "eth",
@@ -980,93 +949,647 @@
     "finalConfirmations": 3
   },
   {
-    "id": "8e8f8e92-0e01-4dd9-a44e-fd5ee2ee7d80",
-    "userId": "695cbe8a26d9d864e36401c4",
+    "id": "9f699e38-191d-4934-8756-7b7eeb7ae02f",
+    "userId": "697870bce5c8a78bc42a9f2b",
+    "cryptocurrency": "eth",
+    "paymentAddress": "0x691780a431486dBf1223524664f3416Cfd49b319",
+    "forwardingAddress": "0x466bc8aDDc7e9Bcd182eaeE849788E438625CbB5",
+    "forwardingId": null,
+    "webhookId": "3eee1a08-a078-4458-86f4-94f6bfaa55e8",
+    "expectedAmount": 0.0021343350479158217,
+    "receivedAmount": 0.001800000000017,
+    "status": "completed",
+    "confirmations": 3,
+    "requiredConfirmations": 3,
+    "txHash": "50a3d870e2a6b67c252f5a0cb0c2704a71f859bafd9be670a41c9cdf656c7440",
+    "blockHeight": 24371354,
+    "addressIndex": 20,
+    "metadata": {
+      "userEmail": "mawelabongane@gmail.com",
+      "userName": "Mawela Bongane",
+      "amountUSD": 5,
+      "addressSource": "local_hd_wallet",
+      "autoForwardFailed": false,
+      "forwardingError": "Balance too low even to cover gas: need 0.00000395746281 ETH, have 0 ETH",
+      "failedAt": "2026-02-03T12:55:32.255Z",
+      "autoForwarded": true,
+      "forwardedAt": "2026-02-03T12:56:41.697Z",
+      "note": "Forwarded externally or in previous attempt"
+    },
+    "createdAt": "2026-02-02T19:21:47.194Z",
+    "updatedAt": "2026-02-03T12:56:41.698Z",
+    "expiresAt": "2026-02-03T05:21:47.194Z",
+    "detectedAt": "2026-02-02T19:46:28.613Z",
+    "confirmedAt": "2026-02-02T19:46:49.668Z",
+    "completedAt": "2026-02-02T19:46:49.702Z",
+    "transactionHistory": [
+      {
+        "timestamp": "2026-02-02T19:46:26.030Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 24371354
+      },
+      {
+        "timestamp": "2026-02-02T19:46:28.613Z",
+        "type": "payment_detected",
+        "txHash": "f98be46880d451150836760695b45f1e042da27f0cee5e9a6865efc2c18da93e",
+        "amount": 0.001800000000017,
+        "confirmations": 0
+      },
+      {
+        "timestamp": "2026-02-02T19:46:38.540Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 24371355
+      },
+      {
+        "timestamp": "2026-02-02T19:46:39.034Z",
+        "type": "confirmation_update",
+        "confirmations": 2,
+        "blockHeight": 24371354
+      },
+      {
+        "timestamp": "2026-02-02T19:46:49.668Z",
+        "type": "confirmation_update",
+        "confirmations": 3,
+        "blockHeight": 24371354
+      },
+      {
+        "timestamp": "2026-02-02T19:46:49.703Z",
+        "type": "payment_completed",
+        "finalAmount": 0.002,
+        "finalConfirmations": 3,
+        "txHash": "50a3d870e2a6b67c252f5a0cb0c2704a71f859bafd9be670a41c9cdf656c7440"
+      }
+    ],
+    "finalAmount": 0.002,
+    "finalConfirmations": 3
+  },
+  {
+    "id": "014c306f-3179-47e6-807c-2fc85b9b9418",
+    "userId": "68dbc4a9952ed094a434797c",
     "cryptocurrency": "btc",
-    "paymentAddress": "bc1qu3mrrt5tdqgjuwg2p2p35ke90n788ktrjnn5f0",
+    "paymentAddress": "bc1qq2gwnef0fxlh3ex09z578ypzcdte08afqahgpc",
     "forwardingAddress": "12CuKENGce2WQevWVf4NhzJa1DRr8Ah67N",
     "forwardingId": null,
-    "webhookId": "97f93e08-0e85-4400-9fc8-5e5f01e7d233",
-    "expectedAmount": 4.4159279382327705,
-    "receivedAmount": null,
-    "status": "pending",
-    "confirmations": 0,
+    "webhookId": "258b708f-9f91-4de0-9241-539793369793",
+    "expectedAmount": 0.00007692406312901448,
+    "receivedAmount": 0.00012792,
+    "status": "completed",
+    "confirmations": 1,
     "requiredConfirmations": 1,
-    "txHash": null,
-    "blockHeight": null,
-    "addressIndex": 15,
+    "txHash": "e304c683d53a8c88944ba8b349b2fb6237da1983317af6330a76e8ef4785dac5",
+    "blockHeight": 934832,
+    "addressIndex": 20,
     "metadata": {
-      "userEmail": "melanie@botting.com.au",
-      "userName": "Melanie Botting",
-      "amountUSD": 339735,
-      "addressSource": "local_hd_wallet"
+      "userEmail": "admin@example.com",
+      "userName": "Admin",
+      "amountUSD": 6,
+      "addressSource": "local_hd_wallet",
+      "autoForwarded": true,
+      "forwardedAt": "2026-02-03T10:03:06.308Z",
+      "forwardingTxHash": "522c8c43090719e721337ef236e6be375cbb6f38165bb01fce64d734e3a4e3b1",
+      "forwardedAmount": 0.00012568,
+      "feeRemaining": 0,
+      "feeTaken": false,
+      "feePercentage": 0,
+      "networkFees": 0.00000224,
+      "networkFeeDeducted": true,
+      "originalAmount": 0.00012792
     },
-    "createdAt": "2026-02-02T10:21:20.600Z",
-    "updatedAt": "2026-02-02T10:21:21.308Z",
-    "expiresAt": "2026-02-02T20:21:20.600Z",
-    "detectedAt": null,
-    "confirmedAt": null,
-    "completedAt": null,
-    "transactionHistory": []
+    "createdAt": "2026-02-03T09:45:29.417Z",
+    "updatedAt": "2026-02-03T10:03:06.308Z",
+    "expiresAt": "2026-02-03T19:45:29.417Z",
+    "detectedAt": "2026-02-03T09:51:50.215Z",
+    "confirmedAt": "2026-02-03T10:03:05.673Z",
+    "completedAt": "2026-02-03T10:03:05.708Z",
+    "transactionHistory": [
+      {
+        "timestamp": "2026-02-03T09:51:50.215Z",
+        "type": "payment_detected",
+        "txHash": "e304c683d53a8c88944ba8b349b2fb6237da1983317af6330a76e8ef4785dac5",
+        "amount": 0.00012792,
+        "confirmations": 0
+      },
+      {
+        "timestamp": "2026-02-03T10:03:05.673Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 934832
+      },
+      {
+        "timestamp": "2026-02-03T10:03:05.708Z",
+        "type": "payment_completed",
+        "finalAmount": 0.00012792,
+        "finalConfirmations": 1,
+        "txHash": "e304c683d53a8c88944ba8b349b2fb6237da1983317af6330a76e8ef4785dac5"
+      }
+    ],
+    "finalAmount": 0.00012792,
+    "finalConfirmations": 1
   },
   {
-    "id": "6c2d30b0-ca48-4252-bf55-ea2a997c19ec",
-    "userId": "6936af54a1a52ba070cd887d",
+    "id": "8cfbe137-8d7d-4a9c-9f8d-a97d621a128c",
+    "userId": "6983416c31835808948ee160",
     "cryptocurrency": "eth",
-    "paymentAddress": "0x3f3d1d4B916e1B43fDaF8e878b0D6dD67FF2a2db",
+    "paymentAddress": "0xAF78C06E374Fb449021936C4013e2F3E048F61Ce",
     "forwardingAddress": "0x466bc8aDDc7e9Bcd182eaeE849788E438625CbB5",
     "forwardingId": null,
-    "webhookId": "35a1f2ef-a87b-4487-b127-cb2b1fa8eeb5",
-    "expectedAmount": 0.10510089686098655,
+    "webhookId": "6eac665a-caa6-421c-a7cc-fe8ccb162cd2",
+    "expectedAmount": 0.0017865756704125203,
     "receivedAmount": null,
-    "status": "pending",
-    "confirmations": 0,
+    "status": "confirming",
+    "confirmations": 1,
     "requiredConfirmations": 3,
     "txHash": null,
-    "blockHeight": null,
-    "addressIndex": 16,
+    "blockHeight": 24383780,
+    "addressIndex": 22,
     "metadata": {
-      "userEmail": "johnlahart@live.co.uk",
-      "userName": "John  Lahart",
-      "amountUSD": 240,
+      "userEmail": "sudipto.k.pal@gmail.com",
+      "userName": "Sudipto Kumar Pal",
+      "amountUSD": 4,
       "addressSource": "local_hd_wallet"
     },
-    "createdAt": "2026-02-02T11:55:19.337Z",
-    "updatedAt": "2026-02-02T11:55:19.588Z",
-    "expiresAt": "2026-02-02T21:55:19.337Z",
+    "createdAt": "2026-02-04T13:14:02.452Z",
+    "updatedAt": "2026-02-04T13:26:37.205Z",
+    "expiresAt": "2026-02-04T23:14:02.452Z",
     "detectedAt": null,
     "confirmedAt": null,
     "completedAt": null,
-    "transactionHistory": []
+    "transactionHistory": [
+      {
+        "timestamp": "2026-02-04T13:26:37.205Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 24383780
+      }
+    ]
   },
   {
-    "id": "030c373b-754e-40a4-b016-81adb6cf9e64",
-    "userId": "695e175914e88b7397ec4f0a",
+    "id": "ae82883d-2c0d-4aad-b395-728f96367baa",
+    "userId": "69831acf31835808948dcdad",
+    "cryptocurrency": "btc",
+    "paymentAddress": "bc1qaynx4wxj3rme93z9rf9hkuyujdvvw2ng6fvz50",
+    "forwardingAddress": "12CuKENGce2WQevWVf4NhzJa1DRr8Ah67N",
+    "forwardingId": null,
+    "webhookId": "2649f8cd-9e8a-4fe6-972f-64c3769fd8f9",
+    "expectedAmount": 0.00008177729317159602,
+    "receivedAmount": 0.00038259,
+    "status": "completed",
+    "confirmations": 1,
+    "requiredConfirmations": 1,
+    "txHash": "143f4d8bc0f6ae43741f54034bbb2d1acf02075e42de20c3f44c02b45b30373d",
+    "blockHeight": 935050,
+    "addressIndex": 41,
+    "metadata": {
+      "userEmail": "alanbe53@gmail.com",
+      "userName": "Alan Beatty",
+      "amountUSD": 6,
+      "addressSource": "local_hd_wallet",
+      "autoForwarded": true,
+      "autoForwardFailed": false,
+      "forwardedAt": "2026-02-04T23:10:20.080Z",
+      "forwardingTxHash": "f8347dd32333a771b5d3c938de4d154dc7b27e1f4598e7b5b17b406d6d2943a4",
+      "forwardedAmount": 0.00038035,
+      "feeRemaining": 0,
+      "feeTaken": false,
+      "feePercentage": 0,
+      "networkFees": 0.00000224,
+      "networkFeeDeducted": true,
+      "originalAmount": 0.00038259
+    },
+    "createdAt": "2026-02-04T21:21:06.116Z",
+    "updatedAt": "2026-02-04T23:10:20.080Z",
+    "expiresAt": "2026-02-05T07:21:06.116Z",
+    "detectedAt": "2026-02-04T23:03:46.623Z",
+    "confirmedAt": "2026-02-04T23:10:17.624Z",
+    "completedAt": "2026-02-04T23:10:17.658Z",
+    "transactionHistory": [
+      {
+        "timestamp": "2026-02-04T23:03:46.623Z",
+        "type": "payment_detected",
+        "txHash": "143f4d8bc0f6ae43741f54034bbb2d1acf02075e42de20c3f44c02b45b30373d",
+        "amount": 0.00038259,
+        "confirmations": 0
+      },
+      {
+        "timestamp": "2026-02-04T23:10:17.624Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 935050
+      },
+      {
+        "timestamp": "2026-02-04T23:10:17.658Z",
+        "type": "payment_completed",
+        "finalAmount": 0.00038259,
+        "finalConfirmations": 1,
+        "txHash": "143f4d8bc0f6ae43741f54034bbb2d1acf02075e42de20c3f44c02b45b30373d"
+      }
+    ],
+    "finalAmount": 0.00038259,
+    "finalConfirmations": 1
+  },
+  {
+    "id": "24786acf-10d6-4e11-8e4a-79b2f7e6a2cf",
+    "userId": "698463b93183580894911457",
+    "cryptocurrency": "btc",
+    "paymentAddress": "bc1q9nplplfcxlljp53898g064zf4lrjzrwxkzgtss",
+    "forwardingAddress": "12CuKENGce2WQevWVf4NhzJa1DRr8Ah67N",
+    "forwardingId": null,
+    "webhookId": "421863f1-9417-420b-92dd-8ab110b32750",
+    "expectedAmount": 0.00008528905883523576,
+    "receivedAmount": 0.00021537,
+    "status": "completed",
+    "confirmations": 1,
+    "requiredConfirmations": 1,
+    "txHash": "e59db7b0d0616d0167a5b55dbce1a85701fa68289d5415ba1fe5779d6b2252e2",
+    "blockHeight": 935117,
+    "addressIndex": 49,
+    "metadata": {
+      "userEmail": "cwardep@gmail.com",
+      "userName": "Paul Wardell",
+      "amountUSD": 6,
+      "addressSource": "local_hd_wallet",
+      "autoForwarded": true,
+      "autoForwardFailed": false,
+      "forwardedAt": "2026-02-05T12:25:12.760Z",
+      "forwardingTxHash": "b17866f0c8d3d66344b327b299d813a1624ad9416386d8370327c1f1a1625a58",
+      "forwardedAmount": 0.00021313,
+      "feeRemaining": 0,
+      "feeTaken": false,
+      "feePercentage": 0,
+      "networkFees": 0.00000224,
+      "networkFeeDeducted": true,
+      "originalAmount": 0.00021537
+    },
+    "createdAt": "2026-02-05T12:08:35.448Z",
+    "updatedAt": "2026-02-05T12:25:12.760Z",
+    "expiresAt": "2026-02-05T22:08:35.448Z",
+    "detectedAt": "2026-02-05T12:19:48.847Z",
+    "confirmedAt": "2026-02-05T12:25:12.170Z",
+    "completedAt": "2026-02-05T12:25:12.178Z",
+    "transactionHistory": [
+      {
+        "timestamp": "2026-02-05T12:19:48.847Z",
+        "type": "payment_detected",
+        "txHash": "e59db7b0d0616d0167a5b55dbce1a85701fa68289d5415ba1fe5779d6b2252e2",
+        "amount": 0.00021537,
+        "confirmations": 0
+      },
+      {
+        "timestamp": "2026-02-05T12:25:12.170Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 935117
+      },
+      {
+        "timestamp": "2026-02-05T12:25:12.178Z",
+        "type": "payment_completed",
+        "finalAmount": 0.00021537,
+        "finalConfirmations": 1,
+        "txHash": "e59db7b0d0616d0167a5b55dbce1a85701fa68289d5415ba1fe5779d6b2252e2"
+      }
+    ],
+    "finalAmount": 0.00021537,
+    "finalConfirmations": 1
+  },
+  {
+    "id": "c8f67c19-bb7b-41e0-9084-5a56697e0bff",
+    "userId": "6981e0dc31835808948a50e2",
+    "cryptocurrency": "btc",
+    "paymentAddress": "bc1qs6g4fjjkrukz44dyftgu3kfvdkmmhx3sqnqp08",
+    "forwardingAddress": "12CuKENGce2WQevWVf4NhzJa1DRr8Ah67N",
+    "forwardingId": null,
+    "webhookId": "158db4ea-376e-4a24-8366-08cc0009f8f1",
+    "expectedAmount": 0.0000864428756663305,
+    "receivedAmount": 0.000105,
+    "status": "completed",
+    "confirmations": 1,
+    "requiredConfirmations": 1,
+    "txHash": "1df54eace3ce0b892c2d5538efa5b9a821540676b1dab8c7cd17891955ae195d",
+    "blockHeight": 935125,
+    "addressIndex": 51,
+    "metadata": {
+      "userEmail": "b_km13@yahoo.co.in",
+      "userName": "Bhuvneshwar Kumar Malhotra",
+      "amountUSD": 6,
+      "addressSource": "local_hd_wallet",
+      "autoForwarded": true,
+      "autoForwardFailed": false,
+      "forwardedAt": "2026-02-05T13:54:43.771Z",
+      "forwardingTxHash": "af0a23df89ad7b2db32464e48ee8814bceff30084ba1a1445c99c11c08022c72",
+      "forwardedAmount": 0.00010276,
+      "feeRemaining": 0,
+      "feeTaken": false,
+      "feePercentage": 0,
+      "networkFees": 0.00000224,
+      "networkFeeDeducted": true,
+      "originalAmount": 0.000105
+    },
+    "createdAt": "2026-02-05T13:39:38.295Z",
+    "updatedAt": "2026-02-05T13:54:43.771Z",
+    "expiresAt": "2026-02-05T23:39:38.295Z",
+    "detectedAt": "2026-02-05T13:50:58.419Z",
+    "confirmedAt": "2026-02-05T13:54:43.126Z",
+    "completedAt": "2026-02-05T13:54:43.138Z",
+    "transactionHistory": [
+      {
+        "timestamp": "2026-02-05T13:50:58.420Z",
+        "type": "payment_detected",
+        "txHash": "1df54eace3ce0b892c2d5538efa5b9a821540676b1dab8c7cd17891955ae195d",
+        "amount": 0.000105,
+        "confirmations": 0
+      },
+      {
+        "timestamp": "2026-02-05T13:54:43.126Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 935125
+      },
+      {
+        "timestamp": "2026-02-05T13:54:43.138Z",
+        "type": "payment_completed",
+        "finalAmount": 0.000105,
+        "finalConfirmations": 1,
+        "txHash": "1df54eace3ce0b892c2d5538efa5b9a821540676b1dab8c7cd17891955ae195d"
+      }
+    ],
+    "finalAmount": 0.000105,
+    "finalConfirmations": 1
+  },
+  {
+    "id": "d4637884-47d4-4ce4-8a64-f1012476ae63",
+    "userId": "690c527cbe341f84094a191b",
     "cryptocurrency": "eth",
-    "paymentAddress": "0x1e3F9A92afc2F28bb1A6211BFA28d8e51b835656",
+    "paymentAddress": "0x020D2011aE45A135193198fD1a3f7a8A47EdFA27",
     "forwardingAddress": "0x466bc8aDDc7e9Bcd182eaeE849788E438625CbB5",
     "forwardingId": null,
-    "webhookId": "6d57e013-c1ce-4523-9697-16dfdca0ffb1",
-    "expectedAmount": 0.004379204035874439,
-    "receivedAmount": null,
-    "status": "pending",
-    "confirmations": 0,
+    "webhookId": "ae68761c-bd6c-499e-960b-818647dd41af",
+    "expectedAmount": 0.2593535139238289,
+    "receivedAmount": 0.27942715,
+    "status": "completed",
+    "confirmations": 3,
     "requiredConfirmations": 3,
-    "txHash": null,
-    "blockHeight": null,
-    "addressIndex": 17,
+    "txHash": "c9079647efc715e732206872ad9c876fcd5b88d9fe7f7d17783dcb1b48b522db",
+    "blockHeight": 24396359,
+    "addressIndex": 25,
     "metadata": {
-      "userEmail": "jacobsmith@info-vanderlex.com",
-      "userName": "Jacob Smith",
-      "amountUSD": 10,
+      "userEmail": "tripplertraveller13@gmail.com",
+      "userName": "Robert John Taylor",
+      "amountUSD": 533,
       "addressSource": "local_hd_wallet"
     },
-    "createdAt": "2026-02-02T12:38:35.074Z",
-    "updatedAt": "2026-02-02T12:38:35.376Z",
-    "expiresAt": "2026-02-02T22:38:35.074Z",
+    "createdAt": "2026-02-06T07:26:34.656Z",
+    "updatedAt": "2026-02-07T14:51:07.519Z",
+    "expiresAt": "2026-02-06T17:26:34.656Z",
     "detectedAt": null,
-    "confirmedAt": null,
-    "completedAt": null,
-    "transactionHistory": []
+    "confirmedAt": "2026-02-06T07:42:15.575Z",
+    "completedAt": "2026-02-06T07:42:15.586Z",
+    "transactionHistory": [
+      {
+        "timestamp": "2026-02-06T07:41:50.321Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 24396359
+      },
+      {
+        "timestamp": "2026-02-06T07:41:50.346Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 24396359
+      },
+      {
+        "timestamp": "2026-02-06T07:42:02.604Z",
+        "type": "confirmation_update",
+        "confirmations": 2,
+        "blockHeight": 24396359
+      },
+      {
+        "timestamp": "2026-02-06T07:42:02.614Z",
+        "type": "confirmation_update",
+        "confirmations": 2,
+        "blockHeight": 24396359
+      },
+      {
+        "timestamp": "2026-02-06T07:42:15.575Z",
+        "type": "confirmation_update",
+        "confirmations": 3,
+        "blockHeight": 24396359
+      },
+      {
+        "timestamp": "2026-02-06T07:42:15.586Z",
+        "type": "payment_completed",
+        "finalAmount": null,
+        "finalConfirmations": 3,
+        "txHash": "c9079647efc715e732206872ad9c876fcd5b88d9fe7f7d17783dcb1b48b522db"
+      }
+    ],
+    "finalAmount": 0.27942715,
+    "finalConfirmations": 3
+  },
+  {
+    "id": "fb318baf-c9ab-48f4-a664-23b1cbe32039",
+    "userId": "6985aedfde87a566bba4abc8",
+    "cryptocurrency": "btc",
+    "paymentAddress": "bc1qj65xuf3ttwkvfpsalg6xhqwxdaz2tl2n3texps",
+    "forwardingAddress": "12CuKENGce2WQevWVf4NhzJa1DRr8Ah67N",
+    "forwardingId": null,
+    "webhookId": "46934917-5cc2-47a4-8fe8-9d1abf85aca8",
+    "expectedAmount": 0.00008631479003927323,
+    "receivedAmount": 0.00010661,
+    "status": "completed",
+    "confirmations": 1,
+    "requiredConfirmations": 1,
+    "txHash": "fa04a314a3886f0bc0e5c8c823e7725e5e93c1a708b83a5cdfb8b8bf26a4d145",
+    "blockHeight": 935236,
+    "addressIndex": 64,
+    "metadata": {
+      "userEmail": "k_bibicha@hotmail.com",
+      "userName": "Bibicha Kapela sakina",
+      "amountUSD": 6,
+      "addressSource": "local_hd_wallet",
+      "autoForwarded": true,
+      "autoForwardFailed": false,
+      "forwardedAt": "2026-02-06T10:06:24.955Z",
+      "forwardingTxHash": "c720dd0a52bbf58b8607427745c750a3460ab462d9881e4f1804e43203adde1a",
+      "forwardedAmount": 0.00010437,
+      "feeRemaining": 0,
+      "feeTaken": false,
+      "feePercentage": 0,
+      "networkFees": 0.00000224,
+      "networkFeeDeducted": true,
+      "originalAmount": 0.00010661
+    },
+    "createdAt": "2026-02-06T09:34:13.457Z",
+    "updatedAt": "2026-02-06T10:06:24.955Z",
+    "expiresAt": "2026-02-06T19:34:13.457Z",
+    "detectedAt": "2026-02-06T09:53:16.361Z",
+    "confirmedAt": "2026-02-06T10:06:24.331Z",
+    "completedAt": "2026-02-06T10:06:24.349Z",
+    "transactionHistory": [
+      {
+        "timestamp": "2026-02-06T09:53:16.361Z",
+        "type": "payment_detected",
+        "txHash": "fa04a314a3886f0bc0e5c8c823e7725e5e93c1a708b83a5cdfb8b8bf26a4d145",
+        "amount": 0.00010661,
+        "confirmations": 0
+      },
+      {
+        "timestamp": "2026-02-06T10:06:24.331Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 935236
+      },
+      {
+        "timestamp": "2026-02-06T10:06:24.349Z",
+        "type": "payment_completed",
+        "finalAmount": 0.00010661,
+        "finalConfirmations": 1,
+        "txHash": "fa04a314a3886f0bc0e5c8c823e7725e5e93c1a708b83a5cdfb8b8bf26a4d145"
+      }
+    ],
+    "finalAmount": 0.00010661,
+    "finalConfirmations": 1
+  },
+  {
+    "id": "a216a068-eae6-4a8a-8fb6-9781255e79a8",
+    "userId": "69845c1c318358089490eb61",
+    "cryptocurrency": "eth",
+    "paymentAddress": "0x4B064D83144a42285329Efe1DBBD85fa79304eea",
+    "forwardingAddress": "0x466bc8aDDc7e9Bcd182eaeE849788E438625CbB5",
+    "forwardingId": null,
+    "webhookId": "f964fe32-c289-43ff-aca3-f6930241781c",
+    "expectedAmount": 0.0031180007379268413,
+    "receivedAmount": 0,
+    "status": "completed",
+    "confirmations": 3,
+    "requiredConfirmations": 3,
+    "txHash": "25315f48108e2f81c419a112e392e6fa0043a1e49e35592a120b81231cc26290",
+    "blockHeight": 24397895,
+    "addressIndex": 27,
+    "metadata": {
+      "userEmail": "martauthor@googlemail.com",
+      "userName": "Marcin  Pasztelan",
+      "amountUSD": 6,
+      "addressSource": "local_hd_wallet"
+    },
+    "createdAt": "2026-02-06T12:40:25.238Z",
+    "updatedAt": "2026-02-06T12:50:49.776Z",
+    "expiresAt": "2026-02-06T22:40:25.238Z",
+    "detectedAt": "2026-02-06T12:50:25.512Z",
+    "confirmedAt": "2026-02-06T12:50:49.770Z",
+    "completedAt": "2026-02-06T12:50:49.776Z",
+    "transactionHistory": [
+      {
+        "timestamp": "2026-02-06T12:50:25.512Z",
+        "type": "payment_detected",
+        "txHash": "b300318b32a9f251600f5ed6077a07ef09a7216c2bac46ffe05dd4a63d33b521",
+        "amount": 0,
+        "confirmations": 0
+      },
+      {
+        "timestamp": "2026-02-06T12:50:26.288Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 24397895
+      },
+      {
+        "timestamp": "2026-02-06T12:50:38.075Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 24397896
+      },
+      {
+        "timestamp": "2026-02-06T12:50:38.094Z",
+        "type": "confirmation_update",
+        "confirmations": 2,
+        "blockHeight": 24397895
+      },
+      {
+        "timestamp": "2026-02-06T12:50:49.759Z",
+        "type": "confirmation_update",
+        "confirmations": 2,
+        "blockHeight": 24397896
+      },
+      {
+        "timestamp": "2026-02-06T12:50:49.770Z",
+        "type": "confirmation_update",
+        "confirmations": 3,
+        "blockHeight": 24397895
+      },
+      {
+        "timestamp": "2026-02-06T12:50:49.776Z",
+        "type": "payment_completed",
+        "finalAmount": 0,
+        "finalConfirmations": 3,
+        "txHash": "25315f48108e2f81c419a112e392e6fa0043a1e49e35592a120b81231cc26290"
+      }
+    ],
+    "finalAmount": 0,
+    "finalConfirmations": 3
+  },
+  {
+    "id": "b701e4f5-f9a6-419b-94fc-e9f64b533e3a",
+    "userId": "6967485b2cea454236db67af",
+    "cryptocurrency": "btc",
+    "paymentAddress": "bc1qphuvhkjeap46q3htkwqz8dh87xfs7jzjsjpmna",
+    "forwardingAddress": "12CuKENGce2WQevWVf4NhzJa1DRr8Ah67N",
+    "forwardingId": null,
+    "webhookId": "e747b929-abe8-4b23-ac19-ae3606bde2bf",
+    "expectedAmount": 0.02274519318250743,
+    "receivedAmount": 0.02012551,
+    "status": "completed",
+    "confirmations": 1,
+    "requiredConfirmations": 1,
+    "txHash": "8b465402a11fc62f5becf65d563c8945185f7b1dde569d42bdc03c44c952459c",
+    "blockHeight": 935283,
+    "addressIndex": 68,
+    "metadata": {
+      "userEmail": "jasvinder_31@hotmail.com",
+      "userName": "Jasvinder Jandu",
+      "amountUSD": 1500,
+      "addressSource": "local_hd_wallet",
+      "autoForwarded": true,
+      "autoForwardFailed": false,
+      "forwardedAt": "2026-02-06T17:57:02.609Z",
+      "forwardingTxHash": "fda445ac9b080c781cc6c88dec954fc6cfb6f1e882096a493b93cbde016a6d9f",
+      "forwardedAmount": 0.01962090975,
+      "feeRemaining": 0.0005046002500000007,
+      "feeTaken": true,
+      "feePercentage": 2.500000000000002,
+      "networkFees": 0.00000224,
+      "networkFeeDeducted": false,
+      "originalAmount": 0.02012551
+    },
+    "createdAt": "2026-02-06T17:17:42.069Z",
+    "updatedAt": "2026-02-06T17:57:02.609Z",
+    "expiresAt": "2026-02-07T03:17:42.069Z",
+    "detectedAt": "2026-02-06T17:56:21.641Z",
+    "confirmedAt": "2026-02-06T17:57:01.990Z",
+    "completedAt": "2026-02-06T17:57:02.033Z",
+    "transactionHistory": [
+      {
+        "timestamp": "2026-02-06T17:56:21.641Z",
+        "type": "payment_detected",
+        "txHash": "8b465402a11fc62f5becf65d563c8945185f7b1dde569d42bdc03c44c952459c",
+        "amount": 0.02012551,
+        "confirmations": 0
+      },
+      {
+        "timestamp": "2026-02-06T17:57:01.991Z",
+        "type": "confirmation_update",
+        "confirmations": 1,
+        "blockHeight": 935283
+      },
+      {
+        "timestamp": "2026-02-06T17:57:02.033Z",
+        "type": "payment_completed",
+        "finalAmount": 0.02012551,
+        "finalConfirmations": 1,
+        "txHash": "8b465402a11fc62f5becf65d563c8945185f7b1dde569d42bdc03c44c952459c"
+      }
+    ],
+    "finalAmount": 0.02012551,
+    "finalConfirmations": 1
   }
 ]

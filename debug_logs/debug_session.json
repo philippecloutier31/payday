@@ -1,0 +1,74 @@
+{
+  "id": "9f699e38-191d-4934-8756-7b7eeb7ae02f",
+  "userId": "697870bce5c8a78bc42a9f2b",
+  "cryptocurrency": "eth",
+  "paymentAddress": "0x691780a431486dBf1223524664f3416Cfd49b319",
+  "forwardingAddress": "0x466bc8aDDc7e9Bcd182eaeE849788E438625CbB5",
+  "forwardingId": null,
+  "webhookId": "3eee1a08-a078-4458-86f4-94f6bfaa55e8",
+  "expectedAmount": 0.0021343350479158217,
+  "receivedAmount": 0.001800000000017,
+  "status": "completed",
+  "confirmations": 3,
+  "requiredConfirmations": 3,
+  "txHash": "50a3d870e2a6b67c252f5a0cb0c2704a71f859bafd9be670a41c9cdf656c7440",
+  "blockHeight": 24371354,
+  "addressIndex": 20,
+  "metadata": {
+    "userEmail": "mawelabongane@gmail.com",
+    "userName": "Mawela Bongane",
+    "amountUSD": 5,
+    "addressSource": "local_hd_wallet",
+    "autoForwardFailed": true,
+    "forwardingError": "Balance too low even to cover gas: need 0.000003409914039 ETH, have 0 ETH",
+    "failedAt": "2026-02-03T12:14:50.955Z"
+  },
+  "createdAt": "2026-02-02T19:21:47.194Z",
+  "updatedAt": "2026-02-03T12:14:50.955Z",
+  "expiresAt": "2026-02-03T05:21:47.194Z",
+  "detectedAt": "2026-02-02T19:46:28.613Z",
+  "confirmedAt": "2026-02-02T19:46:49.668Z",
+  "completedAt": "2026-02-02T19:46:49.702Z",
+  "transactionHistory": [
+    {
+      "timestamp": "2026-02-02T19:46:26.030Z",
+      "type": "confirmation_update",
+      "confirmations": 1,
+      "blockHeight": 24371354
+    },
+    {
+      "timestamp": "2026-02-02T19:46:28.613Z",
+      "type": "payment_detected",
+      "txHash": "f98be46880d451150836760695b45f1e042da27f0cee5e9a6865efc2c18da93e",
+      "amount": 0.001800000000017,
+      "confirmations": 0
+    },
+    {
+      "timestamp": "2026-02-02T19:46:38.540Z",
+      "type": "confirmation_update",
+      "confirmations": 1,
+      "blockHeight": 24371355
+    },
+    {
+      "timestamp": "2026-02-02T19:46:39.034Z",
+      "type": "confirmation_update",
+      "confirmations": 2,
+      "blockHeight": 24371354
+    },
+    {
+      "timestamp": "2026-02-02T19:46:49.668Z",
+      "type": "confirmation_update",
+      "confirmations": 3,
+      "blockHeight": 24371354
+    },
+    {
+      "timestamp": "2026-02-02T19:46:49.703Z",
+      "type": "payment_completed",
+      "finalAmount": 0.002,
+      "finalConfirmations": 3,
+      "txHash": "50a3d870e2a6b67c252f5a0cb0c2704a71f859bafd9be670a41c9cdf656c7440"
+    }
+  ],
+  "finalAmount": 0.002,
+  "finalConfirmations": 3
+}

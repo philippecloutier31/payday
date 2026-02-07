@@ -1,0 +1,18 @@
+=== BTC FEE AUDIT ===
+
+Found 10 BTC sessions with uncollected fees
+
+Session: b701e4f5
+Address: bc1qphuvhkjeap46q3htkwqz8dh87xfs7jzjsjpmna
+Index: 68
+Expected: 0.00050460 BTC
+Actual: 0.00050237 BTC
+Status: OK
+
+
+=== SUMMARY ===
+Total Expected: 0.00050460 BTC ($48.44)
+Total Actual: 0.00050237 BTC ($48.23)
+Missing: 0.00000000 BTC ($0.00)
+
+All fees accounted for.

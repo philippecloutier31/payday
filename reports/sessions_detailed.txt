@@ -1,0 +1,113 @@
+Session ID: d4637884-47d4-4ce4-8a64-f1012476ae63
+Crypto: eth
+TX Hash: c9079647efc715e732206872ad9c876fcd5b88d9fe7f7d17783dcb1b48b522db
+Expected: 0.2593535139238289
+Received: null
+Final: null
+Status: completed
+Metadata: {
+  "userEmail": "tripplertraveller13@gmail.com",
+  "userName": "Robert John Taylor",
+  "amountUSD": 533,
+  "addressSource": "local_hd_wallet"
+}
+History: [
+  {
+    "timestamp": "2026-02-06T07:41:50.321Z",
+    "type": "confirmation_update",
+    "confirmations": 1,
+    "blockHeight": 24396359
+  },
+  {
+    "timestamp": "2026-02-06T07:41:50.346Z",
+    "type": "confirmation_update",
+    "confirmations": 1,
+    "blockHeight": 24396359
+  },
+  {
+    "timestamp": "2026-02-06T07:42:02.604Z",
+    "type": "confirmation_update",
+    "confirmations": 2,
+    "blockHeight": 24396359
+  },
+  {
+    "timestamp": "2026-02-06T07:42:02.614Z",
+    "type": "confirmation_update",
+    "confirmations": 2,
+    "blockHeight": 24396359
+  },
+  {
+    "timestamp": "2026-02-06T07:42:15.575Z",
+    "type": "confirmation_update",
+    "confirmations": 3,
+    "blockHeight": 24396359
+  },
+  {
+    "timestamp": "2026-02-06T07:42:15.586Z",
+    "type": "payment_completed",
+    "finalAmount": null,
+    "finalConfirmations": 3,
+    "txHash": "c9079647efc715e732206872ad9c876fcd5b88d9fe7f7d17783dcb1b48b522db"
+  }
+]
+---
+Session ID: a216a068-eae6-4a8a-8fb6-9781255e79a8
+Crypto: eth
+TX Hash: 25315f48108e2f81c419a112e392e6fa0043a1e49e35592a120b81231cc26290
+Expected: 0.0031180007379268413
+Received: 0
+Final: 0
+Status: completed
+Metadata: {
+  "userEmail": "martauthor@googlemail.com",
+  "userName": "Marcin  Pasztelan",
+  "amountUSD": 6,
+  "addressSource": "local_hd_wallet"
+}
+History: [
+  {
+    "timestamp": "2026-02-06T12:50:25.512Z",
+    "type": "payment_detected",
+    "txHash": "b300318b32a9f251600f5ed6077a07ef09a7216c2bac46ffe05dd4a63d33b521",
+    "amount": 0,
+    "confirmations": 0
+  },
+  {
+    "timestamp": "2026-02-06T12:50:26.288Z",
+    "type": "confirmation_update",
+    "confirmations": 1,
+    "blockHeight": 24397895
+  },
+  {
+    "timestamp": "2026-02-06T12:50:38.075Z",
+    "type": "confirmation_update",
+    "confirmations": 1,
+    "blockHeight": 24397896
+  },
+  {
+    "timestamp": "2026-02-06T12:50:38.094Z",
+    "type": "confirmation_update",
+    "confirmations": 2,
+    "blockHeight": 24397895
+  },
+  {
+    "timestamp": "2026-02-06T12:50:49.759Z",
+    "type": "confirmation_update",
+    "confirmations": 2,
+    "blockHeight": 24397896
+  },
+  {
+    "timestamp": "2026-02-06T12:50:49.770Z",
+    "type": "confirmation_update",
+    "confirmations": 3,
+    "blockHeight": 24397895
+  },
+  {
+    "timestamp": "2026-02-06T12:50:49.776Z",
+    "type": "payment_completed",
+    "finalAmount": 0,
+    "finalConfirmations": 3,
+    "txHash": "25315f48108e2f81c419a112e392e6fa0043a1e49e35592a120b81231cc26290"
+  }
+]
+---
