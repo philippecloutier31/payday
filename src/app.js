@@ -16,6 +16,7 @@ import './services/forwarding.service.js'; // Initialize auto-forwarding
 
 // Import confirmation service for event handling
 import { confirmationService } from './services/confirmation.service.js';
+import { verifyApiKey } from './middleware/auth.middleware.js';
 
 const app = express();
 
@@ -143,7 +144,9 @@ app.get('/health', (req, res) => {
     });
 });
 
-// API Routes
+// API Routes - Protect all routes below with authentication
+app.use(verifyApiKey);
+
 app.use('/address', addressRoutes);
 app.use('/session', sessionRoutes);
 app.use('/webhook', webhookRoutes);
