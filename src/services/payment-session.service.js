@@ -546,7 +546,41 @@ class PaymentSessionManager {
     }
 
     /**
+     * Check if an index is already used for a cryptocurrency
+     */
+    isIndexUsed(index, crypto) {
+        for (const s of this.sessions.values()) {
+            if (s.cryptocurrency === crypto && s.addressIndex === index) return true;
+        }
+        return false;
+    }
+
+    /**
+     * Get a random unused index for a cryptocurrency
+     */
+    getRandomIndex(crypto) {
+        // Use a range that avoids common low indices (0-1000)
+        // Range: 1000 to 2,000,000
+        const MIN = 1000;
+        const MAX = 2000000;
+
+        let index;
+        let attempts = 0;
+        do {
+            index = Math.floor(Math.random() * (MAX - MIN + 1)) + MIN;
+            attempts++;
+        } while (this.isIndexUsed(index, crypto) && attempts < 100);
+
+        if (attempts >= 100) {
+            throw new Error('Failed to generate unique random index');
+        }
+
+        return index;
+    }
+
+    /**
      * Get next index for a cryptocurrency and increment
+     * @deprecated Use getRandomIndex instead for better privacy
      */
     getNextIndex(crypto) {
         const key = crypto.toLowerCase();

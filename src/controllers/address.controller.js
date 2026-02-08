@@ -55,8 +55,9 @@ export const createPaymentAddress = async (req, res, next) => {
         }
 
 
-        // Get next derivation index
-        const index = paymentSessionManager.getNextIndex(crypto);
+        // Get random derivation index (for privacy and security)
+        // This makes it harder to guess other addresses and isolates keys
+        const index = paymentSessionManager.getRandomIndex(crypto);
 
         let paymentAddress;
         let addressSource;
